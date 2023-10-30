@@ -1,46 +1,62 @@
-// const Profile = require('../Model/Profile_Model');
-// const PostedPic = require('../Model/PostedPic_Model');
+const HomePage = require("../Model/HomePage_Model")
 
-// exports.create = async (req, res) => {
-//   try {
-//     // Handle image and video uploads here
-//     // You can access the image path with req.files.image[0].path
-//     // You can access the video path with req.files.video[0].path
+exports.create = async (req, res) => {
+    const { title, image, image1} = req.body;
 
-//     // Example of saving image and video paths to the database
-//     const imageFilePath = req.files.image[0].path;
-//     const videoFilePath = req.files.video[0].path;
 
-//     // Create a new profile with the image file path
-//     const newProfile = new Profile({
-//       profilePic: imageFilePath,
-//     });
+    if (!image || !image1 ) {
+        return res.status(400).json({ error: 'Image, Image1 are required fields' });
+      }
+  
+    if (req.files) {
+      image = req.files['image'][0]
+        ? req.protocol + '://' + req.get('host') + '/uploads/' + req.files['image'][0].filename
+        : '';
+  
+      image1 = req.files['image1'][0]
+        ? req.protocol + '://' + req.get('host') + '/uploads/' + req.files['image1'][0].filename
+        : '';
+    }
+  
+    try {
+      const homepage = new HomePage({ image, image1, title });
+      const saved = await homepage.save();
+  
+      res.status(201).json(saved);
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  };
+  
 
-//     // Save the profile to the database
-//     await newProfile.save();
+  //get method
+exports.getAll = async (req, res) => {
+    try {
+      const records = await HomePage.find();
+      const responseData = {
+        message: 'All images upload successfully',
+        data: records,
+      };
+  
+      res.status(200).json(responseData);
+    } catch (error) {
+      console.error('Error fetching records:', error);
+      res.status(500).json({ error: 'Error fetching records', message: error.message });
+    }
+  };
 
-//     // Create a new posted pic with the image and video file paths, name, and timings
-//     const newPostedPic = new PostedPic({
-//       profilePic: imageFilePath, // Assuming you want the same image for both profilePic and postedPic
-//       video: videoFilePath,
-//       name: req.body.name, // Add the name from the request body
-//       timings: req.body.timings, // Add the timings from the request body
-//       // You can add other fields here if needed
-//     });
-
-//     // Save the posted pic to the database
-//     await newPostedPic.save();
-
-//      // Respond with a success message or any necessary data
-//      const responseData = {
-//       profile: newProfile,
-//       postedpic: newPostedPic,
-//     };
-
-//     res.json(responseData);
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: 'Internal Server Error' });
-//   }
-// };
-
+  // delete method
+exports.delete = (req, res) => {
+    const id = req.params.id
+    HomePage.findByIdAndDelete(id)
+        .then(data => {
+            if (!data) {
+                res.status(400).send(`category not found with ${id}`)
+            } else {
+                res.send("category deleted successfully")
+            }
+        })
+        .catch(error => {
+            res.status(500).send(error)
+        })
+  }

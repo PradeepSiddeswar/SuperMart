@@ -46,12 +46,13 @@ app.use(bp.urlencoded({extended:false}));
 // const HomePageRoute = require("./Routes/HomePage_Router")
 const RegisterRoute = require("./Routes/Register_Router")
 const OrdersRoute = require("./Routes/Orders_Router")
-
+const HomePageRoute = require("./Routes/HomePage_Router")
 
 dotenv.config({ path: '.env'})
 const PORT = process.env.PORT || 8080
 console.log("Server Started", PORT)
 const mongoose = require("mongoose");
+const HomePage = require("./Model/HomePage_Model");
 mongoose.pluralize(null)
 mongoose.connect(process.env.MONGO_URL, {
 
@@ -72,3 +73,4 @@ app.use(express.static("upload"))
 // app.use('/Profile-PostedPic', HomePageRoute)
 app.use('/Register', RegisterRoute)
 app.use('/Orders', OrdersRoute )
+app.use('/HomePage-Image', HomePageRoute)
