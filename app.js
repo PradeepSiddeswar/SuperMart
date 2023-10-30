@@ -2,7 +2,30 @@ const express = require("express")
 const dotenv = require("dotenv")
 const cors = require("cors")
 const path = require("path")
+const http = require('http');
+
 const app = express()
+const server = http.createServer(app);
+
+const socketIo = require('socket.io');
+
+const io = socketIo(server);
+
+// Your other app setup code
+
+// Socket.io connections
+io.on('connection', (socket) => {
+  console.log('A client connected.');
+
+  // Handle disconnection
+  socket.on('disconnect', () => {
+    console.log('A client disconnected.');
+  });
+});
+
+
+
+
 
 app.use(cors({
   origin: 'http://localhost:3000',
@@ -22,7 +45,7 @@ app.use(bp.urlencoded({extended:false}));
 
 // const HomePageRoute = require("./Routes/HomePage_Router")
 const RegisterRoute = require("./Routes/Register_Router")
-
+const OrdersRoute = require("./Routes/Orders_Router")
 
 
 dotenv.config({ path: '.env'})
@@ -48,3 +71,4 @@ app.get("/", (req, res) => {
 app.use(express.static("upload"))
 // app.use('/Profile-PostedPic', HomePageRoute)
 app.use('/Register', RegisterRoute)
+app.use('/Orders', OrdersRoute )
