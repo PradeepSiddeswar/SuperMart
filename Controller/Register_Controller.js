@@ -1,14 +1,14 @@
 // controllers/documentController.js
 const  RegisterModel= require('../Model/Register_Model');
-const NodeGeocoder = require('node-geocoder'); // Import the geocoding library
+// const NodeGeocoder = require('node-geocoder'); // Import the geocoding library
 
-const mapboxApiKey = 'pk.eyJ1Ijoic2lkZGVzd2FyYSIsImEiOiJjbG51OWI4c2IwYjZwMmxuMWF6NDhlZHdjIn0.WH3M4bwTDpETOAV_85v4gg';
+// const mapboxApiKey = 'pk.eyJ1Ijoic2lkZGVzd2FyYSIsImEiOiJjbG51OWI4c2IwYjZwMmxuMWF6NDhlZHdjIn0.WH3M4bwTDpETOAV_85v4gg';
 
-// Configure the geocoder with Mapbox as the provider
-const geocoder = NodeGeocoder({
-  provider: 'mapbox',
-  apiKey: mapboxApiKey,
-});
+// // Configure the geocoder with Mapbox as the provider
+// const geocoder = NodeGeocoder({
+//   provider: 'mapbox',
+//   apiKey: mapboxApiKey,
+// });
 
  // post method
 exports.create = async (req, res) => {
@@ -47,22 +47,13 @@ exports.create = async (req, res) => {
         : '';
     }
 
-    // Use the geocoder to obtain latitude and longitude from the provided location
-    const geocodeResult = await geocoder.geocode(location);
-
-    if (!geocodeResult || geocodeResult.length === 0) {
-      return res.status(400).json({ error: 'Location not found or invalid' });
-    }
-
-    const latitude = geocodeResult[0].latitude;
-    const longitude = geocodeResult[0].longitude;
+ 
 
     // Create a new category with the obtained latitude and longitude
     const register = new RegisterModel({
       phone,
       name,
-      latitude,
-      longitude,
+      location,
       vehicleType,
       vehicleName,
       vehicleNumber,
@@ -82,8 +73,7 @@ exports.create = async (req, res) => {
       _id: register._id,
       phone: register.phone,
       name: register.name,
-      latitude: register.latitude,
-      longitude: register.longitude,
+      location: register.location,
       vehicleType: register.vehicleType,
       vehicleName: register.vehicleName,
       vehicleNumber: register.vehicleNumber,

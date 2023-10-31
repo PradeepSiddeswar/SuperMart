@@ -9,14 +9,10 @@ const registerSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  latitude: {
-    type: Number, // Assuming latitude is a number
-    required: true
-  },
-  longitude: {
-    type: Number, // Assuming longitude is a number
-    required: true
-  },
+ location: {
+  type :String,
+  required: true,
+ },
   vehicleType: {
     type: String,
     required: true
