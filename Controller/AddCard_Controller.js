@@ -10,9 +10,10 @@ exports.create = async (req, res) => {
       if (!productData.quantity) {
         return res.status(400).json({ error: 'Quantity is required' });
       }
-  
-      // Calculate the total price with the discount applied
-      const totalPrice = Number(productData.price) * Number(productData.quantity) * (1 - Number(productData.offer));
+      
+      // Calculate the total price with the discount applied (decrease of 12%)
+      const totalPrice = Number(productData.price) * Number(productData.quantity) * (1 - (Number(productData.offer) / 100));
+      
       const totalQuantity = Number(productData.quantity);
   
       const product = new AddCard(productData);
@@ -32,10 +33,12 @@ exports.create = async (req, res) => {
     }
 };
 
+
   
   
   //get method
-  exports.getAll = async (req, res) => {
+ //get method
+exports.getAll = async (req, res) => {
     try {
       const records = await AddCard.find();
   
@@ -45,8 +48,12 @@ exports.create = async (req, res) => {
           const itemTotalPrice = record.price * record.quantity * (1 - record.offer);
           const itemTotalQuantity = record.quantity;
   
+          // Format the offer percentage without decimal places
+          const formattedOffer = `${(record.offer * 100).toFixed(0)}%`;
+  
           return {
             ...record._doc,
+            offer: formattedOffer, // Display as 12% instead of 0.12%
             totalPrice: itemTotalPrice.toFixed(2),
             totalQuantity: itemTotalQuantity,
           };
@@ -59,6 +66,7 @@ exports.create = async (req, res) => {
       res.status(500).json({ error: 'Error fetching records', message: error.message });
     }
   };
+  
   /// getitembyid 
   exports.getItemById = async (req, res) => {
     try {
