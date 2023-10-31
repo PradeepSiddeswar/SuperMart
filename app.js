@@ -43,10 +43,11 @@ const bp = require("body-parser")
 app.use(bp.json());
 app.use(bp.urlencoded({extended:false}));
 
-// const HomePageRoute = require("./Routes/HomePage_Router")
 const RegisterRoute = require("./Routes/Register_Router")
 const OrdersRoute = require("./Routes/Orders_Router")
 const HomePageRoute = require("./Routes/HomePage_Router")
+const AddCardRoute = require("./Routes/AddCard_Router")
+
 
 dotenv.config({ path: '.env'})
 const PORT = process.env.PORT || 8080
@@ -74,3 +75,4 @@ app.use(express.static("upload"))
 app.use('/Register', RegisterRoute)
 app.use('/Orders', OrdersRoute )
 app.use('/HomePage-Image', HomePageRoute)
+app.use('/Add-to-card', AddCardRoute)
