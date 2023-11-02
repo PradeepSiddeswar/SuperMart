@@ -4,118 +4,116 @@ const AddCard = require('../Model/AddCard_Model');
 
 exports.create = async (req, res) => {
     try {
-      const productData = req.body;
-  
-      // Ensure that "quantity" is provided in the productData
-      if (!productData.quantity) {
-        return res.status(400).json({ error: 'Quantity is required' });
-      }
-      
-      // Calculate the total price with the discount applied (decrease of 12%)
-      const totalPrice = Number(productData.price) * Number(productData.quantity) * (1 - (Number(productData.offer) / 100));
-      
-      const totalQuantity = Number(productData.quantity);
-  
-      const product = new AddCard(productData);
-      await product.save();
-  
-      // Create a response object
-      const response = {
-        product,
-        totalPrice: totalPrice.toFixed(2), // Ensure 2 decimal places
-        totalQuantity,
-      };
-  
-      res.status(201).json(response);
+        const productData = req.body;
+
+        if (!productData.quantity) {
+            return res.status(400).json({ error: 'Quantity is required' });
+        }
+
+        // Calculate the total price with the discount applied (decrease of 12%)
+        const totalPrice = Number(productData.price) * Number(productData.quantity) * (1 - (Number(productData.offer) / 100));
+
+        const totalQuantity = Number(productData.quantity);
+
+        const product = new AddCard(productData);
+        await product.save();
+
+        // Create a response object
+        const response = {
+            product,
+            totalPrice: totalPrice.toFixed(2),
+            totalQuantity,
+        };
+
+        res.status(201).json(response);
     } catch (error) {
-      console.error('Error saving product to the database:', error);
-      res.status(500).json({ error: 'Could not save the product to the database' });
+        console.error('Error saving product to the database:', error);
+        res.status(500).json({ error: 'Could not save the product to the database' });
     }
 };
 
-
-  
-  
-  //get method
- //get method
+//get method
 exports.getAll = async (req, res) => {
     try {
-      const records = await AddCard.find();
-  
-      const responseData = {
-        message: 'All items added successfully',
-        data: records.map((record) => {
-          const itemTotalPrice = record.price * record.quantity * (1 - record.offer);
-          const itemTotalQuantity = record.quantity;
-  
-          // Format the offer percentage without decimal places
-          const formattedOffer = `${(record.offer * 100).toFixed(0)}%`;
-  
-          return {
-            ...record._doc,
-            offer: formattedOffer, // Display as 12% instead of 0.12%
+        const records = await AddCard.find();
+
+        const responseData = {
+            message: 'All items added successfully',
+            data: records.map((record) => {
+                const itemTotalPrice = record.price * record.quantity * (1 - record.offer);
+                const itemTotalQuantity = record.quantity;
+
+                // Format the offer percentage without decimal places
+                const formattedOffer = `${(record.offer * 100).toFixed(0)}%`;
+
+                return {
+                    ...record._doc,
+                    offer: formattedOffer, // Display as 12% instead of 0.12%
+                    totalPrice: itemTotalPrice.toFixed(2),
+                    totalQuantity: itemTotalQuantity,
+                };
+            }),
+        };
+
+        res.status(200).json(responseData);
+    } catch (error) {
+        console.error('Error fetching records:', error);
+        res.status(500).json({ error: 'Error fetching records', message: error.message });
+    }
+};
+
+/// getItemById 
+exports.getItemById = async (req, res) => {
+    try {
+        const itemId = req.params.id;
+
+        if (!mongoose.Types.ObjectId.isValid(itemId)) {
+            console.error('Invalid Item ID');
+            return res.status(400).json({ message: "Invalid Item ID" });
+        }
+
+        const item = await AddCard.findById(itemId);
+
+        if (!item) {
+            return res.status(404).json({ message: "Item not found" });
+        }
+
+        // Calculate total price and total quantity for the specific item
+        const itemTotalPrice = item.price * item.quantity * (1 - item.offer);
+        const itemTotalQuantity = item.quantity;
+
+        // Include "totalPrice" and "totalQuantity" in the response
+        const response = {
+            ...item._doc,
             totalPrice: itemTotalPrice.toFixed(2),
             totalQuantity: itemTotalQuantity,
-          };
-        }),
-      };
-  
-      res.status(200).json(responseData);
+        };
+
+        res.json(response);
     } catch (error) {
-      console.error('Error fetching records:', error);
-      res.status(500).json({ error: 'Error fetching records', message: error.message });
+        console.error("Error fetching item:", error);
+        res.status(500).json({ message: "Internal Server Error" });
     }
-  };
-  
-  /// getitembyid 
-  exports.getItemById = async (req, res) => {
-    try {
-      const itemId = req.params.id;
-  
-      // Validate if itemId is a valid ObjectId
-      if (!mongoose.Types.ObjectId.isValid(itemId)) {
-        console.error('Invalid Item ID');
-        return res.status(400).json({ message: "Invalid Item ID" });
-      }
-  
-      const item = await AddCard.findById(itemId);
-  
-      if (!item) {
-        return res.status(404).json({ message: "Item not found" });
-      }
-  
-      // Calculate total price and total quantity for the specific item
-      const itemTotalPrice = item.price * item.quantity * (1 - item.offer);
-      const itemTotalQuantity = item.quantity;
-  
-      // Include "totalPrice" and "totalQuantity" in the response
-      const response = {
-        ...item._doc,
-        totalPrice: itemTotalPrice.toFixed(2),
-        totalQuantity: itemTotalQuantity,
-      };
-  
-      res.json(response);
-    } catch (error) {
-      console.error("Error fetching item:", error);
-      res.status(500).json({ message: "Internal Server Error" });
-    }
-  };
-  
- // delete method
+};
+
+// delete method
 exports.delete = (req, res) => {
     const id = req.params.id
     AddCard.findByIdAndDelete(id)
         .then(data => {
             if (!data) {
-                res.status(400).send(`category not found with ${id}`)
+                res.status(400).send(`category products not found with ${id}`)
             } else {
-                res.send("category deleted successfully")
+                res.send(
+                    {
+                        message: "Products Deleted Successfully"
+                    }
+                )
             }
         })
         .catch(error => {
             res.status(500).send(error)
         })
-  }
+}
 
 
