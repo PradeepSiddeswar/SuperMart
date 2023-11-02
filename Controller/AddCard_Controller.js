@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const AddCard = require('../Model/AddCard_Model');
+const { response } = require('express');
 
 
 exports.create = async (req, res) => {
@@ -56,8 +57,15 @@ exports.getAll = async (req, res) => {
                 totalQuantity: record.quantity,
             };
         });
+        const totalPrice = responseData.reduce((acc, item) => acc + parseFloat(item.totalPrice),0).toFixed(2);
+        const totalQuantity =responseData.reduce((acc, item) => acc + item.totalQuantity, 0)
+    
 
-        res.status(200).json({ message: 'All items added successfully', data: responseData });
+        res.status(200).send({ message: 'All items added successfully',
+         data: responseData,
+         'Total Price':totalPrice,
+         'Total Quantity': totalQuantity,
+         });
     } catch (error) {
         console.error('Error fetching records:', error);
         res.status(500).json({ error: 'Error fetching records', message: error.message });
