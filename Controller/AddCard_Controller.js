@@ -37,25 +37,27 @@ exports.getAll = async (req, res) => {
     try {
         const records = await AddCard.find();
 
-        const responseData = {
-            message: 'All items added successfully',
-            data: records.map((record) => {
-                const itemTotalPrice = record.price * record.quantity * (1 - record.offer);
-                const itemTotalQuantity = record.quantity;
+        const responseData = records.map((record) => {
+            // Calculate the offer as an integer (e.g., 4% => 4)
+            const offerAsInteger = parseInt(record.offer);
 
-                // Parse the "offer" string to a float (number)
-                const offerAsNumber = parseFloat(record.offer);
+            return {
+                product: {
+                    image: record.image,
+                    itemName: record.itemName,
+                    ItemDetails: record.ItemDetails,
+                    price: record.price,
+                    quantity: record.quantity,
+                    offer: offerAsInteger,
+                    _id: record._id,
+                    __v: record.__v,
+                },
+                totalPrice: (record.price * record.quantity * (1 - (offerAsInteger / 100))).toFixed(2),
+                totalQuantity: record.quantity,
+            };
+        });
 
-                return {
-                    ...record._doc,
-                    offer: offerAsNumber, // Store "offer" as a number
-                    totalPrice: itemTotalPrice.toFixed(2),
-                    totalQuantity: itemTotalQuantity,
-                };
-            }),
-        };
-
-        res.status(200).json(responseData);
+        res.status(200).json({ message: 'All items added successfully', data: responseData });
     } catch (error) {
         console.error('Error fetching records:', error);
         res.status(500).json({ error: 'Error fetching records', message: error.message });
