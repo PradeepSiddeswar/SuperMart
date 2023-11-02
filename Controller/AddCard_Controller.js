@@ -43,12 +43,12 @@ exports.getAll = async (req, res) => {
                 const itemTotalPrice = record.price * record.quantity * (1 - record.offer);
                 const itemTotalQuantity = record.quantity;
 
-                // Format the offer percentage without decimal places
-                const formattedOffer = `${(record.offer * 100).toFixed(0)}%`;
+                // Parse the "offer" string to a float (number)
+                const offerAsNumber = parseFloat(record.offer);
 
                 return {
                     ...record._doc,
-                    offer: formattedOffer, // Display as 12% instead of 0.12%
+                    offer: offerAsNumber, // Store "offer" as a number
                     totalPrice: itemTotalPrice.toFixed(2),
                     totalQuantity: itemTotalQuantity,
                 };
@@ -61,6 +61,7 @@ exports.getAll = async (req, res) => {
         res.status(500).json({ error: 'Error fetching records', message: error.message });
     }
 };
+
 
 /// getItemById 
 exports.getItemById = async (req, res) => {
