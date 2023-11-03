@@ -73,39 +73,47 @@ exports.getAll = async (req, res) => {
 };
 
 
-/// getItemById 
+// getItemById method
 exports.getItemById = async (req, res) => {
+    const id = req.params.id; 
+
     try {
-        const itemId = req.params.id;
+        const record = await AddCard.findById(id);
 
-        if (!mongoose.Types.ObjectId.isValid(itemId)) {
-            console.error('Invalid Item ID');
-            return res.status(400).json({ message: "Invalid Item ID" });
+        if (!record) {
+            // If the item with the given ID is not found, return a 404 Not Found response
+            return res.status(404).json({ message: 'Item not found' });
         }
 
-        const item = await AddCard.findById(itemId);
+        // Calculate the offer as an integer (e.g., 4% => 4)
+        const offerAsInteger = parseInt(record.offer);
 
-        if (!item) {
-            return res.status(404).json({ message: "Item not found" });
-        }
+        // Calculate the total price for the item
+        const totalPrice = (record.price * record.quantity * (1 - (offerAsInteger / 100))).toFixed(2);
 
-        // Calculate total price and total quantity for the specific item
-        const itemTotalPrice = item.price * item.quantity * (1 - item.offer);
-        const itemTotalQuantity = item.quantity;
-
-        // Include "totalPrice" and "totalQuantity" in the response
-        const response = {
-            ...item._doc,
-            totalPrice: itemTotalPrice.toFixed(2),
-            totalQuantity: itemTotalQuantity,
+        // Create a response object with the item details and total price
+        const responseData = {
+            product: {
+                image: record.image,
+                itemName: record.itemName,
+                ItemDetails: record.ItemDetails,
+                price: record.price,
+                quantity: record.quantity,
+                offer: offerAsInteger,
+                _id: record._id,
+                __v: record.__v,
+            },
+            totalPrice,
+            totalQuantity: record.quantity,
         };
 
-        res.json(response);
+        res.status(200).json(responseData);
     } catch (error) {
-        console.error("Error fetching item:", error);
-        res.status(500).json({ message: "Internal Server Error" });
+        console.error('Error fetching item by ID:', error);
+        res.status(500).json({ error: 'Error fetching item by ID', message: error.message });
     }
 };
+
 
 // delete method
 exports.delete = (req, res) => {
