@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
+const uuid = require('uuid'); // Import the uuid library
 
 const productlistSchema = new mongoose.Schema({
+    uuid: {
+        type: String,
+        default: uuid.v4(), // Generate a unique UUID for the item
+    },
     image: {
         type: String,
         required: true,
