@@ -1,6 +1,4 @@
-const mongoose = require('mongoose');
-const AddCard = require('../Model/AddCard_Model');
-
+const ProductList = require('../Model/ProductList_Model');
 
 exports.create = async (req, res) => {
     try {
@@ -15,7 +13,7 @@ exports.create = async (req, res) => {
 
         const totalQuantity = Number(productData.quantity);
 
-        const product = new AddCard(productData);
+        const product = new ProductList(productData);
         await product.save();
 
         // Create a response object
@@ -32,11 +30,12 @@ exports.create = async (req, res) => {
     }
 };
 
+
 //get method
 exports.getAll = async (req, res) => {
     try {
         
-        const records = await AddCard.find();
+        const records = await ProductList.find();
 
         const responseData = records.map((record) => {
             // Calculate the offer as an integer (e.g., 4% => 4)
@@ -46,7 +45,7 @@ exports.getAll = async (req, res) => {
                 product: {
                     image: record.image,
                     itemName: record.itemName,
-                    ItemDetails: record.ItemDetails,
+                    size: record.size,
                     price: record.price,
                     quantity: record.quantity,
                     offer: offerAsInteger,
@@ -71,14 +70,12 @@ exports.getAll = async (req, res) => {
         res.status(500).json({ error: 'Error fetching records', message: error.message });
     }
 };
-
-
 // getItemById method
 exports.getItemById = async (req, res) => {
     const id = req.params.id; 
 
     try {
-        const record = await AddCard.findById(id);
+        const record = await ProductList.findById(id);
 
         if (!record) {
             return res.status(404).json({ message: 'Item not found' });
@@ -95,7 +92,7 @@ exports.getItemById = async (req, res) => {
             product: {
                 image: record.image,
                 itemName: record.itemName,
-                ItemDetails: record.ItemDetails,
+                size: record.size,
                 price: record.price,
                 quantity: record.quantity,
                 offer: offerAsInteger,
@@ -113,11 +110,10 @@ exports.getItemById = async (req, res) => {
     }
 };
 
-
 // delete method
 exports.delete = (req, res) => {
     const id = req.params.id
-    AddCard.findByIdAndDelete(id)
+    ProductList.findByIdAndDelete(id)
         .then(data => {
             if (!data) {
                 res.status(400).send(`category products not found with ${id}`)
@@ -133,5 +129,3 @@ exports.delete = (req, res) => {
             res.status(500).send(error)
         })
 }
-
-
