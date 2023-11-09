@@ -30,6 +30,10 @@ const productlistSchema = new mongoose.Schema({
     offer: {
         type: Number, 
         required: true,
+    },
+    categories_id: {
+        type: Number,
+        required: true,
     }
 });
 

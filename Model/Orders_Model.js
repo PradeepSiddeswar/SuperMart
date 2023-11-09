@@ -3,7 +3,14 @@ const mongoose = require('mongoose');
 // Define a schema for your location data
 const ordersSchema = new mongoose.Schema({
   orderID: String,
- DropLocation : String,
+ DropLocation : {
+  latitude : Number,
+  longitude : Number,
+ },
+ PickUpLocation: {
+  latitude : Number,
+  longitude: Number,
+ },
   timestamp: {
     type: Date,
     default: Date.now,

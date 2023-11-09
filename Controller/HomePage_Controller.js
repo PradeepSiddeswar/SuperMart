@@ -1,7 +1,7 @@
 const HomePage = require("../Model/HomePage_Model")
 
 exports.create = async (req, res) => {
-    const { title, image, image1} = req.body;
+    const { title, image, image1, categories_id} = req.body;
 
 
     if (!image || !image1 ) {
@@ -19,7 +19,7 @@ exports.create = async (req, res) => {
     }
   
     try {
-      const homepage = new HomePage({ image, image1, title });
+      const homepage = new HomePage({ image, image1, title, categories_id });
       const saved = await homepage.save();
   
       res.status(201).json(saved);

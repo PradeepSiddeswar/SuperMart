@@ -21,6 +21,9 @@ exports.create = async (req, res) => {
         // Add the generated UUID to the product data
         productData.uuid = newUuid;
 
+        // Assuming you have a category field in the productData object, you can set categories_id dynamically
+        const categories_id = productData.categoryId; // Adjust the property name as needed
+
         const product = new ProductList(productData);
         await product.save();
 
@@ -30,6 +33,8 @@ exports.create = async (req, res) => {
             totalPrice: totalPrice.toFixed(2),
             totalQuantity,
             newUuid,
+            categories_id,
+
         };
 
         res.status(201).json(response);
@@ -40,14 +45,18 @@ exports.create = async (req, res) => {
 };
 
 
-//get method
 exports.getAll = async (req, res) => {
     try {
-        
         const records = await ProductList.find();
 
+        let categories_id = ''; // Initialize categories_id as an empty string
+
+        if (records.length > 0) {
+            // Set categories_id based on the category of the first product
+            categories_id = records[0].categories_id; // Replace 'category_id' with the actual property name
+        }
+
         const responseData = records.map((record) => {
-            // Calculate the offer as an integer (e.g., 4% => 4)
             const offerAsInteger = parseInt(record.offer);
 
             return {
@@ -60,27 +69,36 @@ exports.getAll = async (req, res) => {
                     offer: offerAsInteger,
                     _id: record._id,
                     __v: record.__v,
-                    // Include the UUID in the response
-                    uuid: record.uuid, // Replace 'uuid' with the actual field name for the UUID
+                    uuid: record.uuid,
                 },
                 totalPrice: (record.price * record.quantity * (1 - (offerAsInteger / 100))).toFixed(2),
                 totalQuantity: record.quantity,
             };
         });
-        const totalPrice = responseData.reduce((acc, item) => acc + parseFloat(item.totalPrice),0).toFixed(2);
-        const totalQuantity = responseData.reduce((acc, item) => acc + item.totalQuantity, 0)
-    
 
-        res.status(200).send({ message: 'All items added successfully',
-         data: responseData,
-         'Total Price': totalPrice,
-         'Total Quantity': totalQuantity,
-         });
+        const totalPrice = responseData.reduce((acc, item) => acc + parseFloat(item.totalPrice), 0).toFixed(2);
+        const totalQuantity = responseData.reduce((acc, item) => acc + item.totalQuantity, 0);
+
+        const response = {
+            message: 'All items added successfully',
+            categories_id,
+            data: responseData,
+            'Total Price': totalPrice,
+            'Total Quantity': totalQuantity,
+        };
+
+        res.status(200).send(response);
     } catch (error) {
         console.error('Error fetching records:', error);
         res.status(500).json({ error: 'Error fetching records', message: error.message });
     }
 };
+
+
+
+
+
+
 
 // getItemById method for retrieving an item by ID
 
@@ -103,7 +121,6 @@ exports.getItemById = async (req, res) => {
         // Generate a new UUID
         const newUuid = uuid.v4();
 
-        // Create a response object with the item details, total price, and new UUID
         const responseData = {
             product: {
                 image: record.image,
@@ -152,3 +169,81 @@ exports.delete = (req, res) => {
 }
 
 
+exports.getAllItems = async (req, res) => {
+    try {
+        // Fetch all items from your database
+        const allItems = await ProductList.find();
+
+        // You can customize the data you want to send in the response
+        const responseData = allItems.map((record) => {
+            return {
+                product: {
+                    image: record.image,
+                    itemName: record.itemName,
+                    size: record.size,
+                    price: record.price,
+                    quantity: record.quantity,
+                    offer: record.offer,
+                    _id: record._id,
+                    __v: record.__v,
+                },
+            };
+        });
+
+        res.status(200).json(responseData);
+    } catch (error) {
+        console.error('Error fetching all items:', error);
+        res.status(500).json({ error: 'Error fetching all items', message: error.message });
+    }
+};
+
+
+exports.getAllCategories = async (req, res) => {
+    try {
+        // Get the specific categories_id from the request URL parameter
+        const specificCategoryId = req.params.categories_id; // Use req.params instead of req.query
+
+        if (!specificCategoryId) {
+            return res.status(400).json({ error: 'Missing categories_id parameter' });
+        }
+
+        // Fetch records for the specific category
+        const records = await ProductList.find({ categories_id: specificCategoryId });
+
+        const responseData = records.map((record) => {
+            const offerAsInteger = parseInt(record.offer);
+
+            return {
+                product: {
+                    image: record.image,
+                    itemName: record.itemName,
+                    size: record.size,
+                    price: record.price,
+                    quantity: record.quantity,
+                    offer: offerAsInteger,
+                    _id: record._id,
+                    __v: record.__v,
+                    uuid: record.uuid,
+                },
+                totalPrice: (record.price * record.quantity * (1 - (offerAsInteger / 100))).toFixed(2),
+                totalQuantity: record.quantity,
+            };
+        });
+
+        const totalPrice = responseData.reduce((acc, item) => acc + parseFloat(item.totalPrice), 0).toFixed(2);
+        const totalQuantity = responseData.reduce((acc, item) => acc + item.totalQuantity, 0);
+
+        const response = {
+            message: 'Specific items for the specified category added successfully',
+            categories_id: specificCategoryId,
+            data: responseData,
+            'Total Price': totalPrice,
+            'Total Quantity': totalQuantity,
+        };
+
+        res.status(200).send(response);
+    } catch (error) {
+        console.error('Error fetching specific items:', error);
+        res.status(500).json({ error: 'Error fetching specific items', message: error.message });
+    }
+};
