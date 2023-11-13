@@ -65,14 +65,24 @@ exports.createItem = async (req, res) => {
 
 
   /// get method with Categories
+// cartController.js
+
 exports.getCategories = async (req, res) => {
   try {
     const categories = await Category.find({}, 'id name image');
-    res.json(categories);
+
+    // Prepare the desired response structure
+    const responseData = {
+      message: 'All Categories added successfully',
+      data: categories
+    };
+
+    res.json(responseData);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 // Get Method CategoryDetails
 exports.getCategoryDetails = async (req, res) => {
@@ -122,31 +132,52 @@ exports.getSubcategoryItems = async (req, res) => {
 // MultiPle Add-to-cart
 exports.getCartItems = async (req, res) => {
   try {
-    const productIds = req.body.productIds; // Assuming the request body contains an array of product IDs
+    const queryIds = req.query.id;
+    if (!queryIds) {
+      return res.status(400).json({ error: 'No IDs provided' });
+    }
 
-    const products = await Item.find({ _id: { $in: productIds } });
+    const ids = queryIds.split(',');
 
-    if (products.length > 0) {
-      const cartItems = products.map(product => ({
-        _id: product._id,
-        name: product.name,
-        price: product.price,
-        offer: product.offer,
-        size: product.size,
-        subcategory: product.subcategory,
-        image: product.image,
-        quantity: product.quantity,
-        // Include other details as needed
-      }));
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: 'Invalid or empty IDs provided' });
+    }
 
-      res.status(200).json(cartItems);
+    const allItems = [];
+
+    for (const id of ids) {
+      const products = await Item.find({ id: id }); // Fetch items based on IDs
+
+      if (products.length > 0) {
+        const cartItems = products.map(product => ({
+          _id: product._id,
+          name: product.name,
+          price: product.price,
+          offer: product.offer,
+          size: product.size,
+          subcategory: product.subcategory,
+          image: product.image,
+          quantity: product.quantity,
+          // Include other details as needed
+        }));
+
+        allItems.push(...cartItems);
+      } else {
+        allItems.push({ error: `No products found for ID: ${id}` });
+      }
+    }
+
+    if (allItems.length > 0) {
+      res.status(200).json(allItems);
     } else {
-      res.status(404).json({ error: 'No products found' });
+      res.status(404).json({ error: 'No products found for the provided IDs' });
     }
   } catch (error) {
     res.status(500).json({ error: 'Could not retrieve product details' });
   }
 };
+
+
 
 
 

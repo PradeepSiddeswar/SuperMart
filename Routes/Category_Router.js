@@ -9,7 +9,7 @@ router.post('/items', categoryController.createItem);
 router.get('/categories', categoryController.getCategories);
 router.get('/categories/:id', categoryController.getCategoryDetails);
 router.get('/categories/:categoryId/subcategories/:subcategoryId', categoryController.getSubcategoryItems);
-router.get('/product/:productId', categoryController.getCartItems);
+router.get('/product', categoryController.getCartItems);
 router.delete('/:entityType/:id', categoryController.delete);
 // router.post('/add-to-cart/:itemId', categoryController.addToCart);
 
