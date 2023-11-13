@@ -49,6 +49,7 @@ const HomePageRoute = require("./Routes/HomePage_Router")
 const AddCardRoute = require("./Routes/AddCard_Router")
 const ProductListRoute = require("./Routes/ProductList_Router")
 const OrderDetalsRoute = require('./Routes/OrderDetails_Router')
+const CategoryRoute = require('./Routes/Category_Router')
 
 dotenv.config({ path: '.env'})
 const PORT = process.env.PORT || 8080
@@ -139,3 +140,4 @@ app.use('/HomePage-Image', HomePageRoute)
 app.use('/Add-to-cart', AddCardRoute)
 app.use('/Categories-list',ProductListRoute)
 app.use('/order-details', OrderDetalsRoute)
+app.use('/api', CategoryRoute)
