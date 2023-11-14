@@ -5,6 +5,7 @@ const itemSchema = new mongoose.Schema({
   price: Number,
   offer: Number,
   size: String,
+  status: String,
   subcategory: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Subcategory',

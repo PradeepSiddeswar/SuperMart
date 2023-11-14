@@ -1,71 +1,100 @@
 const Category = require('../Model/Category_Model');
 const Subcategory = require('../Model/Subcategory_Model');
 const Item = require('../Model/Item-Mode');
-
+const ProductDetails = require('../Model/AboutProductDetails_Model')
 
 // category create method
 exports.createCategory = async (req, res) => {
-    try {
-      const category = new Category(req.body);
-      const newCategory = await category.save();
-      res.json(newCategory);
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
+  try {
+    const category = new Category(req.body);
+    const newCategory = await category.save();
+    res.json(newCategory);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
+}
 
-  // Subcategory Create Method
-  exports.createSubcategory = async (req, res) => {
-    try {
-      const subcategory = new Subcategory(req.body);
-      const newSubcategory = await subcategory.save();
-      res.json(newSubcategory);
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-  };
-  
+// Subcategory Create Method
+exports.createSubcategory = async (req, res) => {
+  try {
+    const subcategory = new Subcategory(req.body);
+    const newSubcategory = await subcategory.save();
+    res.json(newSubcategory);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 // Item Create Method
 exports.createItem = async (req, res) => {
-    try {
-        const productData = req.body;
+  try {
+    const productData = req.body;
 
-        if (!productData.quantity) {
-            return res.status(400).json({ error: 'Quantity is required' });
-        }
-        // Calculate the total price with the discount applied (decrease of 12%)
-        const totalPrice = Number(productData.price) * Number(productData.quantity) * (1 - (Number(productData.offer) / 100));
-
-        const totalQuantity = Number(productData.quantity);
-
-
-        // Assuming you have a category field in the productData object, you can set categories_id dynamically
-        const categories_id = productData.categoryId; // Adjust the property name as needed
-
-        const product = new Item(productData);
-        await product.save();
-
-        // Create a response object
-        const response = {
-            product,
-            totalPrice: totalPrice.toFixed(2),
-            totalQuantity,
-            categories_id,
-        };
-
-        res.status(201).json(response);
-    } catch (error) {
-        console.error('Error saving product to the database:', error);
-        res.status(500).json({ error: 'Could not save the product to the database' });
+    if (!productData.quantity) {
+      return res.status(400).json({ error: 'Quantity is required' });
     }
+    // Calculate the total price with the discount applied (decrease of 12%)
+    const totalPrice = Number(productData.price) * Number(productData.quantity) * (1 - (Number(productData.offer) / 100));
+
+    const totalQuantity = Number(productData.quantity);
+
+
+    const categories_id = productData.categoryId; // Adjust the property name as needed
+
+    const product = new Item(productData);
+    await product.save();
+
+    // Create a response object
+    const response = {
+      product,
+      totalPrice: totalPrice.toFixed(2),
+      totalQuantity,
+      categories_id,
+    };
+
+    res.status(201).json(response);
+  } catch (error) {
+    console.error('Error saving product to the database:', error);
+    res.status(500).json({ error: 'Could not save the product to the database' });
+  }
+};
+  
+// Create ProductDetails method
+exports.createProductDetails = async (req, res) => {
+  try {
+    const productData = req.body;
+
+    if (!productData.quantity) {
+      return res.status(400).json({ error: 'Quantity is required' });
+    }
+    // Calculate the total price with the discount applied (decrease of 12%)
+    const totalPrice = Number(productData.price) * Number(productData.quantity) * (1 - (Number(productData.offer) / 100));
+
+    const totalQuantity = Number(productData.quantity);
+
+
+    const categories_id = productData.categoryId; // Adjust the property name as needed
+
+    const product = new ProductDetails(productData);
+    await product.save();
+
+    // Create a response object
+    const response = {
+      product,
+      totalPrice: totalPrice.toFixed(2),
+      totalQuantity,
+      categories_id,
+    };
+
+    res.status(201).json(response);
+  } catch (error) {
+    console.error('Error saving product to the database:', error);
+    res.status(500).json({ error: 'Could not save the product to the database' });
+  }
 };
 
 
-
-
-
-  /// get method with Categories
-// cartController.js
+/// get method with Categories
 
 exports.getCategories = async (req, res) => {
   try {
@@ -98,58 +127,101 @@ exports.getCategoryDetails = async (req, res) => {
 
 // Get Method SubcateoryItems
 exports.getSubcategoryItems = async (req, res) => {
-    try {
-        const subcategory = await Subcategory.findById(req.params.subcategoryId);
-        const items = await Item.find({ subcategory: req.params.subcategoryId });
+  try {
+    const subcategory = await Subcategory.findById(req.params.subcategoryId);
+    const items = await Item.find({ subcategory: req.params.subcategoryId });
+ 
 
-        const formattedItems = items.map(item => {
-            const { quantity, price, offer } = item;
-            const totalAmount = price * quantity * (1 - offer / 100);
+    const formattedItems = items.map(item => {
+      const { quantity, price, offer } = item;
+      const totalAmount = price * quantity * (1 - offer / 100);
+      const status = quantity > 0 ? 'in stock' : 'out of stock';
 
-            return {
-                product: {
-                    _id: item._id,
-                    name: item.name,
-                    price: item.price,
-                    offer: item.offer,
-                    size: item.size,
-                    subcategory: item.subcategory,
-                    image: item.image,
-                    quantity: item.quantity,
-                    addToCart: `/add-to-cart/${item._id}` // URL to add a specific item to the cart
-                },
-                totalAmount: totalAmount.toFixed(2), // Calculated total amount
-                totalQuantity: item.quantity, // Using the existing quantity
-            };
-        });
+      return {
+        product: {
+          _id: item._id,
+          name: item.name,
+          price: item.price,
+          offer: item.offer,
+          size: item.size,
+          subcategory: item.subcategory,
+          image: item.image,
+          quantity: item.quantity,
+          status: status // Add the status field to the product object
+          // addToCart: `/add-to-cart/${item._id}` // URL to add a specific item to the cart
+        },
+        totalAmount: totalAmount.toFixed(2), // Calculated total amount
+        totalQuantity: item.quantity, // Using the existing quantity
+      };
+    });
 
-        res.json({ id: subcategory.id, name: subcategory.name, items: formattedItems });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    res.json({ id: subcategory.id, name: subcategory.name, items: formattedItems });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
+// // Get method with ProductDetails
+// exports.getSubcategoryItems = async (req, res) => {
+//   try {
+//     const item = await Item.findById(req.params.subcategoryId);
+//     const  productDetails = await ProductDetails.find({ subcategory: req.params.subcategoryId });
+
+//     const formattedItems = productDetails.map(item => {
+//       const { quantity, price, offer } = item;
+//       const totalAmount = price * quantity * (1 - offer / 100);
+
+//       return {
+//         product: {
+//           _id: item._id,
+//           name: item.name,
+//           price: item.price,
+//           offer: item.offer,
+//           size: item.size,
+//           product: item.product,
+//           image: item.image,
+//           quantity: item.quantity,
+//           Description: item.Description,
+//           // addToCart: `/add-to-cart/${item._id}` // URL to add a specific item to the cart
+//         },
+//         totalAmount: totalAmount.toFixed(2), // Calculated total amount
+//         totalQuantity: item.quantity, // Using the existing quantity
+//       };
+//     });
+
+//     res.json({ id: product.id, name: product.name, items: formattedItems });
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// };
+
 // MultiPle Add-to-cart
-exports.getCartItems = async (req, res) => {
+exports.addMultipleToCart = async (req, res) => {
   try {
-    const queryIds = req.query.id;
-    if (!queryIds) {
-      return res.status(400).json({ error: 'No IDs provided' });
+    const productIds = req.query.productIds.split(',');
+
+    if (!productIds || !Array.isArray(productIds)) {
+      return res.status(400).json({ error: 'Invalid request format' });
     }
 
-    const ids = queryIds.split(',');
+    const cartItems = [];
+    let totalAmount = 0;
+    let totalQuantity = 0;
 
-    if (!Array.isArray(ids) || ids.length === 0) {
-      return res.status(400).json({ error: 'Invalid or empty IDs provided' });
-    }
+    for (const productId of productIds) {
+      const product = await Item.findById(productId);
 
-    const allItems = [];
+      if (!product) {
+        cartItems.push({ message: `Item with ID ${productId} not found` });
+        continue;
+      }
 
-    for (const id of ids) {
-      const products = await Item.find({ id: id }); // Fetch items based on IDs
+      const itemTotalAmount = product.price * product.quantity * (1 - product.offer / 100);
+      totalAmount += itemTotalAmount;
+      totalQuantity += product.quantity;
 
-      if (products.length > 0) {
-        const cartItems = products.map(product => ({
+      const item = {
+        product: {
           _id: product._id,
           name: product.name,
           price: product.price,
@@ -158,57 +230,54 @@ exports.getCartItems = async (req, res) => {
           subcategory: product.subcategory,
           image: product.image,
           quantity: product.quantity,
-          // Include other details as needed
-        }));
+        },
+        totalAmount: itemTotalAmount.toFixed(2),
+        totalQuantity: product.quantity
+      };
 
-        allItems.push(...cartItems);
-      } else {
-        allItems.push({ error: `No products found for ID: ${id}` });
-      }
+      cartItems.push({ message: 'Item added to cart', item });
     }
 
-    if (allItems.length > 0) {
-      res.status(200).json(allItems);
-    } else {
-      res.status(404).json({ error: 'No products found for the provided IDs' });
-    }
+    res.status(200).json({
+      message: 'Items added to the cart successfully',
+      cartItems,
+      totalAmount: totalAmount.toFixed(2),
+      totalQuantity
+    });
   } catch (error) {
-    res.status(500).json({ error: 'Could not retrieve product details' });
+    res.status(500).json({ error: 'Could not add items to the cart' });
   }
 };
 
 
 
-
-
-
- // Delete method for all entities
+// Delete method for all entities
 exports.delete = async (req, res) => {
-    const { entityType, id } = req.params;
-  
-    try {
-      let result;
-      switch (entityType) {
-        case 'category':
-          result = await Category.findByIdAndDelete(id);
-          break;
-        case 'subcategory':
-          result = await Subcategory.findByIdAndDelete(id);
-          break;
-        case 'item':
-          result = await Item.findByIdAndDelete(id);
-          break;
-        default:
-          return res.status(400).send('Invalid entity type');
-      }
-  
-      if (!result) {
-        return res.status(404).send(`${entityType} not found with ID: ${id}`);
-      }
-  
-      res.send(`${entityType} deleted successfully`);
-    } catch (error) {
-      res.status(500).send(error);
+  const { entityType, id } = req.params;
+
+  try {
+    let result;
+    switch (entityType) {
+      case 'category':
+        result = await Category.findByIdAndDelete(id);
+        break;
+      case 'subcategory':
+        result = await Subcategory.findByIdAndDelete(id);
+        break;
+      case 'item':
+        result = await Item.findByIdAndDelete(id);
+        break;
+      default:
+        return res.status(400).send('Invalid entity type');
     }
-  };
-  
+
+    if (!result) {
+      return res.status(404).send(`${entityType} not found with ID: ${id}`);
+    }
+
+    res.send(`${entityType} deleted successfully`);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+};
+
