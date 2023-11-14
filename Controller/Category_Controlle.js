@@ -67,26 +67,27 @@ exports.createProductDetails = async (req, res) => {
   try {
     const productData = req.body;
 
-    if (!productData.quantity) {
-      return res.status(400).json({ error: 'Quantity is required' });
+    // Check if quantity is provided and if it's less than or equal to 0
+    if (!productData.quantity || productData.quantity <= 0) {
+      productData.status = 'out of stock';
+    } else {
+      productData.status = 'in stock';
     }
+
     // Calculate the total price with the discount applied (decrease of 12%)
     const totalPrice = Number(productData.price) * Number(productData.quantity) * (1 - (Number(productData.offer) / 100));
-
     const totalQuantity = Number(productData.quantity);
 
-
-    const categories_id = productData.categoryId; // Adjust the property name as needed
+    const productId = productData.productId; // Get productId from the request body
 
     const product = new ProductDetails(productData);
     await product.save();
 
-    // Create a response object
+    // Create a response object with product details and related products
     const response = {
       product,
       totalPrice: totalPrice.toFixed(2),
       totalQuantity,
-      categories_id,
     };
 
     res.status(201).json(response);
@@ -95,6 +96,8 @@ exports.createProductDetails = async (req, res) => {
     res.status(500).json({ error: 'Could not save the product to the database' });
   }
 };
+
+
 
 
 /// get method with Categories
@@ -164,39 +167,43 @@ exports.getSubcategoryItems = async (req, res) => {
   }
 };
 
-// // Get method with ProductDetails
-// exports.getSubcategoryItems = async (req, res) => {
-//   try {
-//     const item = await Item.findById(req.params.subcategoryId);
-//     const  productDetails = await ProductDetails.find({ subcategory: req.params.subcategoryId });
+// Get method with ProductDetails
+exports.getProductsDetails = async (req, res) => {
+  try {
+    const products = await ProductDetails.find({ productId: req.params.productId });
 
-//     const formattedItems = productDetails.map(item => {
-//       const { quantity, price, offer } = item;
-//       const totalAmount = price * quantity * (1 - offer / 100);
+    const formattedItems = products.map(item => {
+      const { quantity, price, offer } = item;
+      const totalAmount = price * quantity * (1 - offer / 100);
+      const status = quantity > 0 ? 'in stock' : 'out of stock';
 
-//       return {
-//         product: {
-//           _id: item._id,
-//           name: item.name,
-//           price: item.price,
-//           offer: item.offer,
-//           size: item.size,
-//           product: item.product,
-//           image: item.image,
-//           quantity: item.quantity,
-//           Description: item.Description,
-//           // addToCart: `/add-to-cart/${item._id}` // URL to add a specific item to the cart
-//         },
-//         totalAmount: totalAmount.toFixed(2), // Calculated total amount
-//         totalQuantity: item.quantity, // Using the existing quantity
-//       };
-//     });
+      const productDetails = {
+        _id: item._id,
+        name: item.name,
+        price: item.price,
+        offer: item.offer,
+        size: item.size,
+        image: item.image,
+        Description:item.Description,
+        quantity: item.quantity,
+        status: status // Add the status field to the product object
+        // addToCart: `/add-to-cart/${item._id}` // URL to add a specific item to the cart
+      };
 
-//     res.json({ id: product.id, name: product.name, items: formattedItems });
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// };
+      return {
+        productDetails,
+        totalAmount: totalAmount.toFixed(2), // Calculated total amount
+        totalQuantity: item.quantity, // Using the existing quantity
+      };
+    });
+
+    res.json({ products: formattedItems });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
 
 // MultiPle Add-to-cart
 exports.addMultipleToCart = async (req, res) => {
@@ -270,6 +277,9 @@ exports.delete = async (req, res) => {
       case 'item':
         result = await Item.findByIdAndDelete(id);
         break;
+        case 'productDetails':
+          result = await ProductDetails.findByIdAndDelete(id);
+          break;
       default:
         return res.status(400).send('Invalid entity type');
     }

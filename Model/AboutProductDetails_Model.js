@@ -5,9 +5,9 @@ const productDetailsSchema = new mongoose.Schema({
   price: Number,
   offer: Number,
   size: String,
-  Item: {
+  productId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Item',
+    ref: 'productId',
   },
   image: [String],
   quantity: Number,
