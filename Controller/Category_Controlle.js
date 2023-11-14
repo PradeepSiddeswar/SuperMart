@@ -30,14 +30,16 @@ exports.createItem = async (req, res) => {
   try {
     const productData = req.body;
 
-    if (!productData.quantity) {
-      return res.status(400).json({ error: 'Quantity is required' });
+    // Check if quantity is provided and if it's less than or equal to 0
+    if (!productData.quantity || productData.quantity <= 0) {
+      productData.status = 'out of stock';
+    } else {
+      productData.status = 'in stock';
     }
+
     // Calculate the total price with the discount applied (decrease of 12%)
     const totalPrice = Number(productData.price) * Number(productData.quantity) * (1 - (Number(productData.offer) / 100));
-
     const totalQuantity = Number(productData.quantity);
-
 
     const categories_id = productData.categoryId; // Adjust the property name as needed
 
@@ -58,6 +60,7 @@ exports.createItem = async (req, res) => {
     res.status(500).json({ error: 'Could not save the product to the database' });
   }
 };
+
   
 // Create ProductDetails method
 exports.createProductDetails = async (req, res) => {
