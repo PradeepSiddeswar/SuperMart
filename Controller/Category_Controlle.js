@@ -2,6 +2,9 @@ const Category = require('../Model/Category_Model');
 const Subcategory = require('../Model/Subcategory_Model');
 const Item = require('../Model/Item-Mode');
 const ProductDetails = require('../Model/AboutProductDetails_Model')
+const SimilarPoducts = require('../Model/SimilarProduct_Model');
+
+
 
 // category create method
 exports.createCategory = async (req, res) => {
@@ -97,7 +100,40 @@ exports.createProductDetails = async (req, res) => {
   }
 };
 
+// Create SimilarProducts Method
+exports.createSimilarProducts = async (req, res) => {
+  try {
+    const productData = req.body;
 
+    // Check if quantity is provided and if it's less than or equal to 0
+    if (!productData.quantity || productData.quantity <= 0) {
+      productData.status = 'out of stock';
+    } else {
+      productData.status = 'in stock';
+    }
+
+    // Calculate the total price with the discount applied (decrease of 12%)
+    const totalPrice = Number(productData.price) * Number(productData.quantity) * (1 - (Number(productData.offer) / 100));
+    const totalQuantity = Number(productData.quantity);
+
+    const productId = productData.productId; // Get productId from the request body
+
+    const product = new SimilarPoducts(productData);
+    await product.save();
+
+    // Create a response object with product details and related products
+    const response = {
+      product,
+      totalPrice: totalPrice.toFixed(2),
+      totalQuantity,
+    };
+
+    res.status(201).json(response);
+  } catch (error) {
+    console.error('Error saving product to the database:', error);
+    res.status(500).json({ error: 'Could not save the product to the database' });
+  }
+};
 
 
 /// get method with Categories
@@ -154,7 +190,6 @@ exports.getSubcategoryItems = async (req, res) => {
           image: item.image,
           quantity: item.quantity,
           status: status // Add the status field to the product object
-          // addToCart: `/add-to-cart/${item._id}` // URL to add a specific item to the cart
         },
         totalAmount: totalAmount.toFixed(2), // Calculated total amount
         totalQuantity: item.quantity, // Using the existing quantity
@@ -173,7 +208,7 @@ exports.getProductsDetails = async (req, res) => {
     const products = await ProductDetails.find({ productId: req.params.productId });
 
     if (products.length === 0) {
-      return res.status(404).json({ message: 'Products not found' });
+      return res.status(404).json({ message: 'ProductsDetails not found' });
     }
 
     const formattedItems = products.map(item => {
@@ -187,11 +222,10 @@ exports.getProductsDetails = async (req, res) => {
         price: item.price,
         offer: item.offer,
         size: item.size,
-        image: item.image.map(imageUrl => ({ url: imageUrl })), // Restructuring the image URLs
+        image: item.image.map(imageUrl => ({ url: imageUrl })), 
         Description: item.Description,
         quantity: item.quantity,
-        status: status // Add the status field to the product object
-        // addToCart: `/add-to-cart/${item._id}` // URL to add a specific item to the cart
+        status: status 
       };
 
       return {
@@ -201,12 +235,48 @@ exports.getProductsDetails = async (req, res) => {
       };
     });
 
-    // Return the first item in the formattedItems array (assuming only one product is fetched)
     res.json(formattedItems[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+
+// Get method with SimilarProducts
+exports.getSimilarProducts = async (req, res) => {
+  try {
+    const limitCount = 10; 
+
+    const products = await SimilarPoducts
+      .find({ productId: req.params.productId })
+      .limit(limitCount); 
+
+    if (products.length === 0) {
+      return res.status(404).json({ message: 'SimilarProducts not available' });
+    }
+
+    const similarProducts = products.map(item => ({
+      product: {
+        _id: item._id,
+        name: item.name,
+        price: item.price,
+        offer: item.offer,
+        size: item.size,
+        image: item.image,
+        quantity: item.quantity,
+        status: item.quantity > 0 ? 'in stock' : 'out of stock'
+      },
+      totalAmount: (item.price * item.quantity * (1 - (item.offer / 100))).toFixed(2),
+      totalQuantity: item.quantity
+    }));
+
+    // Return the formatted response
+    res.json({ similarProducts });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
 
 
 
