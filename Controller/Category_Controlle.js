@@ -208,7 +208,7 @@ exports.getProductsDetails = async (req, res) => {
     const products = await ProductDetails.find({ productId: req.params.productId });
 
     if (products.length === 0) {
-      return res.status(404).json({ message: 'ProductsDetails not found' });
+      return res.status(404).json({ message: 'ProductsDetails is not available' });
     }
 
     const formattedItems = products.map(item => {
@@ -229,6 +229,7 @@ exports.getProductsDetails = async (req, res) => {
       };
 
       return {
+        message: 'All ProductsDetails is available',
         productDetails,
         totalAmount: totalAmount.toFixed(2), // Calculated total amount
         totalQuantity: item.quantity, // Using the existing quantity
@@ -251,7 +252,7 @@ exports.getSimilarProducts = async (req, res) => {
       .limit(limitCount); 
 
     if (products.length === 0) {
-      return res.status(404).json({ message: 'SimilarProducts not available' });
+      return res.status(404).json({ message: 'SimilarProducts is not available' });
     }
 
     const similarProducts = products.map(item => ({
@@ -270,7 +271,10 @@ exports.getSimilarProducts = async (req, res) => {
     }));
 
     // Return the formatted response
-    res.json({ similarProducts });
+    res.json({
+      message: 'All SimilarProducts is available',
+      similarProducts,
+     });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

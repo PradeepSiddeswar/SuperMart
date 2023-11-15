@@ -140,4 +140,4 @@ app.use('/HomePage-Image', HomePageRoute)
 app.use('/Add-to-cart', AddCardRoute)
 app.use('/Categories-list',ProductListRoute)
 app.use('/order-details', OrderDetalsRoute)
-app.use('/api', CategoryRoute)
+app.use('/api', CategoryRoute) // Category is the Main imported all models in category controller.js 
