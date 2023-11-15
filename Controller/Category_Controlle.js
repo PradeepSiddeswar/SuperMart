@@ -187,7 +187,7 @@ exports.getProductsDetails = async (req, res) => {
         price: item.price,
         offer: item.offer,
         size: item.size,
-        image: item.image,
+        image: item.image.map(imageUrl => ({ url: imageUrl })), // Restructuring the image URLs
         Description: item.Description,
         quantity: item.quantity,
         status: status // Add the status field to the product object
@@ -207,6 +207,7 @@ exports.getProductsDetails = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 
 
