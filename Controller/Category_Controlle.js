@@ -172,6 +172,10 @@ exports.getProductsDetails = async (req, res) => {
   try {
     const products = await ProductDetails.find({ productId: req.params.productId });
 
+    if (products.length === 0) {
+      return res.status(404).json({ message: 'Products not found' });
+    }
+
     const formattedItems = products.map(item => {
       const { quantity, price, offer } = item;
       const totalAmount = price * quantity * (1 - offer / 100);
@@ -184,7 +188,7 @@ exports.getProductsDetails = async (req, res) => {
         offer: item.offer,
         size: item.size,
         image: item.image,
-        Description:item.Description,
+        Description: item.Description,
         quantity: item.quantity,
         status: status // Add the status field to the product object
         // addToCart: `/add-to-cart/${item._id}` // URL to add a specific item to the cart
@@ -197,11 +201,13 @@ exports.getProductsDetails = async (req, res) => {
       };
     });
 
-    res.json({ products: formattedItems });
+    // Return the first item in the formattedItems array (assuming only one product is fetched)
+    res.json(formattedItems[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 
 
