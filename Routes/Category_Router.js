@@ -23,6 +23,7 @@ router.get('/similarProducts/:productId', categoryController.getSimilarProducts)
 router.get('/allitemsIncart', categoryController.getAllItemsInCart);
 
 // Delete Method with All Products
+router.delete('/removeFromCart/:itemId', categoryController.removeFromCart);
 router.delete('/:entityType/:id', categoryController.delete);
 
 

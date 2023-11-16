@@ -21,8 +21,7 @@ exports.create = async (req, res) => {
         // Add the generated UUID to the product data
         productData.uuid = newUuid;
 
-        // Assuming you have a category field in the productData object, you can set categories_id dynamically
-        const categories_id = productData.categoryId; // Adjust the property name as needed
+        const categories_id = productData.categoryId; 
 
         const product = new ProductList(productData);
         await product.save();
@@ -148,7 +147,7 @@ exports.getItemById = async (req, res) => {
 
 // Delete Item by newUuid method
 exports.delete = (req, res) => {
-    const newUuid = req.params.newUuid; // Get the newUuid from the request parameters
+    const newUuid = req.params.newUuid; 
 
     try {
         // Find and delete the item by its newUuid

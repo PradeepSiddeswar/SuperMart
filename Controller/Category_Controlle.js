@@ -351,8 +351,28 @@ exports.getAllItemsInCart = async (req, res) => {
 };
 
 
+// Delete Method with FromCart
 
+exports.removeFromCart = async (req, res) => {
+  try {
+    const { itemId } = req.params; 
 
+    // Find the index of the item with the given ID in the cart array
+    const indexToRemove = cart.findIndex((productId) => productId === itemId);
+
+    if (indexToRemove === -1) {
+      return res.status(404).json({ message: 'Item not found in the cart' });
+    }
+
+    // Remove the item from the cart array
+    cart.splice(indexToRemove, 1);
+
+    return res.status(200).json({ message: 'Item removed from the cart successfully' });
+  } catch (error) {
+    console.error('Error removing item from cart:', error);
+    return res.status(500).json({ error: 'Could not remove item from the cart' });
+  }
+};
 
 
 
