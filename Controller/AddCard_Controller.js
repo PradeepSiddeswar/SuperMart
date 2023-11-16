@@ -18,7 +18,6 @@ exports.create = async (req, res) => {
         const product = new AddCard(productData);
         await product.save();
 
-        // Create a response object
         const response = {
             product,
             totalPrice: totalPrice.toFixed(2),
@@ -32,7 +31,8 @@ exports.create = async (req, res) => {
     }
 };
 
-//get method
+//Get method
+
 exports.getAll = async (req, res) => {
     try {
         
@@ -74,6 +74,7 @@ exports.getAll = async (req, res) => {
 
 
 // getItemById method
+
 exports.getItemById = async (req, res) => {
     const id = req.params.id; 
 
@@ -84,13 +85,9 @@ exports.getItemById = async (req, res) => {
             return res.status(404).json({ message: 'Item not found' });
         }
 
-        // Calculate the offer as an integer (e.g., 4% => 4)
         const offerAsInteger = parseInt(record.offer);
 
-        // Calculate the total price for the item
         const totalPrice = (record.price * record.quantity * (1 - (offerAsInteger / 100))).toFixed(2);
-
-        // Create a response object with the item details and total price
         const responseData = {
             product: {
                 image: record.image,
@@ -114,7 +111,8 @@ exports.getItemById = async (req, res) => {
 };
 
 
-// delete method
+// Delete method
+
 exports.delete = (req, res) => {
     const id = req.params.id
     AddCard.findByIdAndDelete(id)

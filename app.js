@@ -86,7 +86,7 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 //order_id
 app.get('/Orders', async (req, res) => {
   try {
-    const orderId = req.query.orderID; // Extract the orderID from the query parameter
+    const orderId = req.query.orderID; 
 
     let order = await Orders.findOne({ orderID: orderId });
 
@@ -94,7 +94,7 @@ app.get('/Orders', async (req, res) => {
       return res.status(404).json({ message: 'Order not found' });
     }
 
-    const currentLocation = { latitude: 12.9352, longitude: 77.6245 }; // Replace with the actual current location
+    const currentLocation = { latitude: 12.9352, longitude: 77.6245 }; 
 
     // Check if the location data is valid
     if (
@@ -115,10 +115,9 @@ app.get('/Orders', async (req, res) => {
 
       // Format the distance and add it to the order
       const formattedDistance = distance === 0 ? '0 km' : `${distance.toFixed(2)} km`;
-      order = order.toObject(); // Convert Mongoose document to a plain JavaScript object
+      order = order.toObject(); t
       order.distance = formattedDistance;
     } else {
-      // Handle invalid location data as needed
       order.distance = 'Invalid location data';
     }
 
@@ -133,11 +132,10 @@ app.get('/Orders', async (req, res) => {
 
 
 app.use(express.static("upload"))
-// app.use('/Profile-PostedPic', HomePageRoute)
 app.use('/Register', RegisterRoute)
 app.use('/Orders', OrdersRoute )
 app.use('/HomePage-Image', HomePageRoute)
 app.use('/Add-to-cart', AddCardRoute)
 app.use('/Categories-list',ProductListRoute)
 app.use('/order-details', OrderDetalsRoute)
-app.use('/api', CategoryRoute) // Category is the Main imported all models in category controller.js 
+app.use('/api', CategoryRoute) // Category is the Main  And imported all models in category controller.js 

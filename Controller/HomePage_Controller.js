@@ -29,7 +29,8 @@ exports.create = async (req, res) => {
   };
   
 
-  //get method
+  //Get method
+
 exports.getAll = async (req, res) => {
     try {
       const records = await HomePage.find();
@@ -45,15 +46,16 @@ exports.getAll = async (req, res) => {
     }
   };
 
-  // delete method
+  // Delete method
+
 exports.delete = (req, res) => {
     const id = req.params.id
     HomePage.findByIdAndDelete(id)
         .then(data => {
             if (!data) {
-                res.status(400).send(`category not found with ${id}`)
+                res.status(400).send(` homepage images not found with ${id}`)
             } else {
-                res.send("category deleted successfully")
+                res.send("homepage images deleted successfully")
             }
         })
         .catch(error => {

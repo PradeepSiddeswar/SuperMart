@@ -13,6 +13,6 @@ const similarPoductsSchema = new mongoose.Schema({
   quantity: Number,
 });
 
-const SimilarPoducts = mongoose.model('SimilarProducts', similarPoductsSchema);
+const SimilarProducts = mongoose.model('SimilarProducts', similarPoductsSchema);
 
-module.exports = SimilarPoducts;
+module.exports = SimilarProducts;
