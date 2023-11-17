@@ -46,6 +46,7 @@ app.use(bp.urlencoded({extended:false}));
 const RegisterRoute = require("./Routes/Register_Router")
 const OrdersRoute = require("./Routes/Orders_Router")
 const HomePageRoute = require("./Routes/HomePage_Router")
+const SingleBannerRoute = require("./Routes/SingleBanner_Router")
 const AddCardRoute = require("./Routes/AddCard_Router")
 const ProductListRoute = require("./Routes/ProductList_Router")
 const OrderDetalsRoute = require('./Routes/OrderDetails_Router')
@@ -56,6 +57,7 @@ const PORT = process.env.PORT || 8080
 console.log("Server Started", PORT)
 const mongoose = require("mongoose");
 const HomePage = require("./Model/HomePage_Model");
+const SingleBanner = require("./Model/SingleBanner_Model");
 mongoose.pluralize(null)
 mongoose.connect(process.env.MONGO_URL, {
 
@@ -131,10 +133,11 @@ app.get('/Orders', async (req, res) => {
 
 
 
-app.use(express.static("upload"))
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/Register', RegisterRoute)
 app.use('/Orders', OrdersRoute )
 app.use('/MainBanar', HomePageRoute)
+app.use('/SingleBanner', SingleBannerRoute)
 app.use('/Add-to-cart', AddCardRoute)
 app.use('/Categories-list',ProductListRoute)
 app.use('/order-details', OrderDetalsRoute)

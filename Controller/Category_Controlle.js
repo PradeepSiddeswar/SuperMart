@@ -331,11 +331,16 @@ exports.getAllItemsInCart = async (req, res) => {
     });
 
     const response = {
-      cartItems: cartItems.map((item) => ({
-        product: item,
-        totalAmount: (item.price * item.quantity * (1 - item.offer / 100)).toFixed(2),
-        totalQuantity: item.quantity,
-      })),
+      cartItems: cartItems.map((item) => {
+        const offer = item.product.offer || 0; // Set default offer to 0 if offer is missing or undefined
+        const totalAmount = (item.product.price * item.product.quantity * (1 - offer / 100)).toFixed(2);
+    
+        return {
+          product: item.product,
+          totalAmount,
+          totalQuantity: item.product.quantity,
+        };
+      }),
       totalAmount: totalAmount.toFixed(2),
       totalQuantity,
     };
