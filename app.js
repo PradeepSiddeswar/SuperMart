@@ -51,13 +51,19 @@ const AddCardRoute = require("./Routes/AddCard_Router")
 const ProductListRoute = require("./Routes/ProductList_Router")
 const OrderDetalsRoute = require('./Routes/OrderDetails_Router')
 const CategoryRoute = require('./Routes/Category_Router')
+const KitchenEssentialsRoute = require("./Routes/KitchenEssentials_Router")
+const BeautyProductsRoute = require('./Routes/BeautyProduct_Router')
+const CookingVesselsRoute = require('./Routes/CookingVessels_Router')
+const PersonalCareRoute = require('./Routes/PersonalCare_Router')
+const FruitRoute = require('./Routes/FruitVeggies_Router')
+
+
+
 
 dotenv.config({ path: '.env'})
-const PORT = process.env.PORT || 8080
+const PORT = process.env.PORT || 5000
 console.log("Server Started", PORT)
 const mongoose = require("mongoose");
-const HomePage = require("./Model/HomePage_Model");
-const SingleBanner = require("./Model/SingleBanner_Model");
 mongoose.pluralize(null)
 mongoose.connect(process.env.MONGO_URL, {
 
@@ -132,8 +138,9 @@ app.get('/Orders', async (req, res) => {
 
 
 
+app.use(express.static('public'));
 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// app.use(express.static("upload"))
 app.use('/Register', RegisterRoute)
 app.use('/Orders', OrdersRoute )
 app.use('/MainBanar', HomePageRoute)
@@ -142,3 +149,8 @@ app.use('/Add-to-cart', AddCardRoute)
 app.use('/Categories-list',ProductListRoute)
 app.use('/order-details', OrderDetalsRoute)
 app.use('/api', CategoryRoute) // Category is the Main  And imported all models in category controller.js 
+app.use('/KitchenEssentials',KitchenEssentialsRoute)
+app.use('/BeautyProducts', BeautyProductsRoute)
+app.use('/CookingVessels', CookingVesselsRoute)
+app.use('/PersonalCare', PersonalCareRoute)
+app.use('/FruitAndVeggies',FruitRoute)
