@@ -1,28 +1,19 @@
 const HomePage = require("../Model/HomePage_Model")
 
 exports.create = async (req, res) => {
-    const { title, image, image1, categories_id} = req.body;
+    const { image,} = req.body;
 
 
-    if (!image || !image1 ) {
-        return res.status(400).json({ error: 'Image, Image1 are required fields' });
+    if (!req.body) {
+        return res.status(400).json({ error: 'Content Cont Be Empty' });
       }
   
-    if (req.files) {
-      image = req.files['image'][0]
-        ? req.protocol + '://' + req.get('host') + '/uploads/' + req.files['image'][0].filename
-        : '';
-  
-      image1 = req.files['image1'][0]
-        ? req.protocol + '://' + req.get('host') + '/uploads/' + req.files['image1'][0].filename
-        : '';
-    }
-  
     try {
-      const homepage = new HomePage({ image, image1, title, categories_id });
+      const homepage = new HomePage({ image });
       const saved = await homepage.save();
-  
-      res.status(201).json(saved);
+
+
+    res.status(201).json(saved);
     } catch (err) {
       res.status(400).json({ error: err.message });
     }
@@ -31,11 +22,11 @@ exports.create = async (req, res) => {
 
   //Get method
 
-exports.getAll = async (req, res) => {
+  exports.getAll = async (req, res) => {
     try {
-      const records = await HomePage.find();
+      const records = await HomePage.find().select('-__v');
       const responseData = {
-        message: 'All images upload successfully',
+        message: 'All images uploaded successfully',
         data: records,
       };
   
@@ -45,6 +36,7 @@ exports.getAll = async (req, res) => {
       res.status(500).json({ error: 'Error fetching records', message: error.message });
     }
   };
+  
 
   // Delete method
 

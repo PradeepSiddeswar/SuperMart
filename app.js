@@ -134,7 +134,7 @@ app.get('/Orders', async (req, res) => {
 app.use(express.static("upload"))
 app.use('/Register', RegisterRoute)
 app.use('/Orders', OrdersRoute )
-app.use('/HomePage-Image', HomePageRoute)
+app.use('/MainBanar', HomePageRoute)
 app.use('/Add-to-cart', AddCardRoute)
 app.use('/Categories-list',ProductListRoute)
 app.use('/order-details', OrderDetalsRoute)
