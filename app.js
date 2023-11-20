@@ -123,7 +123,7 @@ app.get('/Orders', async (req, res) => {
 
       // Format the distance and add it to the order
       const formattedDistance = distance === 0 ? '0 km' : `${distance.toFixed(2)} km`;
-      order = order.toObject(); t
+      order = order.toObject(); 
       order.distance = formattedDistance;
     } else {
       order.distance = 'Invalid location data';
