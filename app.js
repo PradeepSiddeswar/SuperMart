@@ -99,7 +99,7 @@ app.get('/Orders', async (req, res) => {
   try {
     const orderId = req.query.orderID; 
 
-    let order = await Orders.findOne({ orderID: orderId });
+    let order = await Order.findOne({ orderID: orderId });
 
     if (!order) {
       return res.status(404).json({ message: 'Order not found' });

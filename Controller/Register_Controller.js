@@ -278,6 +278,69 @@ exports.getAllOrders = async (req, res) => {
 };
 
 
+exports.updateOrder = async (req, res) => {
+  const { _id, DropLocation, PickUpLocation, items, paymentResult } = req.body;
+
+  try {
+    const existingOrder = await Order.findById(_id);
+
+    if (!existingOrder) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    // Your logic to update order details
+    // Calculate the total amount and total quantity from the items
+    let totalAmount = 0;
+    let totalQuantity = 0;
+
+    for (const item of items) {
+      totalAmount += item.price * item.quantity;
+      totalQuantity += item.quantity;
+    }
+
+    const paymentStatus = paymentResult === 'success' ? 'Paid' : 'Failed';
+
+    // Calculate distance using the obtained coordinates
+    const orderLocation = DropLocation;
+    const currentLocation = PickUpLocation;
+
+    if (orderLocation && currentLocation) {
+      const distance = calculateDistance(
+        orderLocation.latitude,
+        orderLocation.longitude,
+        currentLocation.latitude,
+        currentLocation.longitude
+      );
+
+      const formattedDistance = distance === 0 ? '0 km' : `${distance.toFixed(2)} km`;
+
+      // Update the existing order details
+      existingOrder.DropLocation = orderLocation;
+      existingOrder.PickUpLocation = currentLocation;
+      existingOrder.timestamp = new Date(); // Update timestamp if needed
+      existingOrder.items = items;
+      existingOrder.totalAmount = totalAmount;
+      existingOrder.totalQuantity = totalQuantity;
+      existingOrder.paymentStatus = paymentStatus;
+      existingOrder.distance = formattedDistance;
+
+      // Save the updated order to the database
+      await existingOrder.save();
+
+      return res.json({
+        _id: existingOrder._id,
+        action: 'Order Updated',
+        message: 'Order has been updated successfully.',
+        order: existingOrder,
+      });
+    } else {
+      return res.status(400).json({ error: 'Invalid location data provided.' });
+    }
+  } catch (error) {
+    console.error('Error updating order:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
 
 
 

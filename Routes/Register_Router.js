@@ -12,7 +12,7 @@ router.post('/create', homepagemulter.fields([
 router.post('/OrderIdAction', RegisterController.handleAction)
 router.get('/getAll', RegisterController.getAll)
 router.get('/getallAction', RegisterController.getAllOrders)
-
+router.put('/orders/:id', RegisterController.updateOrder);
 router.delete('/delete/:id',RegisterController.delete)
 module.exports = router;
 
