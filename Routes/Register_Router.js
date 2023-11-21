@@ -9,9 +9,10 @@ router.post('/create', homepagemulter.fields([
   { name: 'drivingLicenseImage' },
   { name: 'documentImage' }
 ]), RegisterController.create);
-
+router.post('/OrderIdAction', RegisterController.handleAction)
 router.get('/getAll', RegisterController.getAll)
-router.delete('/delete/:id',RegisterController.delete)
+router.get('/getallAction', RegisterController.getAllOrders)
 
+router.delete('/delete/:id',RegisterController.delete)
 module.exports = router;
 
