@@ -4,7 +4,6 @@ const cors = require("cors")
 const path = require("path")
 const http = require('http');
 const Order = require("./Model/Orders_Model")
-const  RegisterModel= require('./Model/Register_Model');
 
 
 const app = express()
@@ -140,30 +139,7 @@ app.get('/Orders', async (req, res) => {
 });
 
 
-async function populateRegisterModel() {
-  try {
-    const orders = await Order.find();
 
-    for (const order of orders) {
-      const additionalInfo = await RegisterModel.findById(order._id);
-
-      if (!additionalInfo) {
-        await RegisterModel.create({
-          _id: order._id,
-          name: 'N/A',
-          action: 'N/A',
-          message: 'N/A',
-        });
-      }
-    }
-    console.log('RegisterModel populated.');
-  } catch (error) {
-    console.error('Error populating RegisterModel:', error);
-  }
-}
-
-// Run this function once to populate the RegisterModel
-populateRegisterModel();
 
 
 

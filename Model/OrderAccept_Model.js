@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 // Define a schema for your location data
-const ordersSchema = new mongoose.Schema({
+const ordersAcceptSchema = new mongoose.Schema({
   orderID: String,
  DropLocation : {
   latitude : Number,
@@ -31,9 +31,13 @@ const ordersSchema = new mongoose.Schema({
     enum: ['Paid', 'Failed'], // Payment status can be 'Paid' or 'Failed'
     required: true,
   },
+  registerModel: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'RegisterModel', // Reference to the RegisterModel
+  },
 });
 
 // Create a model based on the schema
-const Orders = mongoose.model('Orders', ordersSchema);
+const OrdersAccept = mongoose.model('OrderAccept', ordersAcceptSchema);
 
-module.exports = Orders;
+module.exports = OrdersAccept;

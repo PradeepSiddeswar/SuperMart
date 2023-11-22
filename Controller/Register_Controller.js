@@ -1,8 +1,9 @@
 const  RegisterModel= require('../Model/Register_Model');
-const Order = require('../Model/Orders_Model')
+const OrderAccept = require('../Model/OrderAccept_Model')
 const socketIo = require('socket.io');
 const http = require('http'); // Require http module
 const express = require('express');
+const mongoose = require('mongoose'); // Make sure you import mongoose
 
 const app = express();
 const server = http.createServer(app); // Initialize the server
@@ -143,7 +144,7 @@ exports.handleAction = async (req, res) => {
 
         const formattedDistance = distance === 0 ? '0 km' : `${distance.toFixed(2)} km`;
 
-        const order = new Order({
+        const order = new OrderAccept({
           orderID,
           DropLocation: orderLocation,
           PickUpLocation: currentLocation,
@@ -214,7 +215,7 @@ exports.handleAction = async (req, res) => {
 
 exports.getAllOrders = async (req, res) => {
   try {
-    const allOrders = await Order.find().populate('registerModel').lean();
+    const allOrders = await OrderAccept.find().populate('registerModel').lean();
 
     if (!allOrders || allOrders.length === 0) {
       return res.status(404).json({ error: 'No orders found' });
@@ -279,17 +280,13 @@ exports.getAllOrders = async (req, res) => {
 
 
 exports.updateOrder = async (req, res) => {
-  const { _id, DropLocation, PickUpLocation, items, paymentResult } = req.body;
+  const orderId = req.params.id;
+  const { DropLocation, PickUpLocation, items, paymentResult, action } = req.body;
 
   try {
-    const existingOrder = await Order.findById(_id);
+    // Your validation and error handling code can be placed here
 
-    if (!existingOrder) {
-      return res.status(404).json({ error: 'Order not found' });
-    }
-
-    // Your logic to update order details
-    // Calculate the total amount and total quantity from the items
+    // Your logic to update the order details...
     let totalAmount = 0;
     let totalQuantity = 0;
 
@@ -300,11 +297,11 @@ exports.updateOrder = async (req, res) => {
 
     const paymentStatus = paymentResult === 'success' ? 'Paid' : 'Failed';
 
-    // Calculate distance using the obtained coordinates
     const orderLocation = DropLocation;
     const currentLocation = PickUpLocation;
 
     if (orderLocation && currentLocation) {
+      // Calculate distance using the obtained coordinates
       const distance = calculateDistance(
         orderLocation.latitude,
         orderLocation.longitude,
@@ -314,35 +311,77 @@ exports.updateOrder = async (req, res) => {
 
       const formattedDistance = distance === 0 ? '0 km' : `${distance.toFixed(2)} km`;
 
-      // Update the existing order details
+      // Fetch the existing order from the database using orderId
+      const existingOrder = await OrderAccept.findById(orderId);
+
+      if (!existingOrder) {
+        return res.status(404).json({ error: 'Order not found for the provided ID' });
+      }
+
+      // Update the existing order's fields including the distance
       existingOrder.DropLocation = orderLocation;
       existingOrder.PickUpLocation = currentLocation;
-      existingOrder.timestamp = new Date(); // Update timestamp if needed
       existingOrder.items = items;
       existingOrder.totalAmount = totalAmount;
       existingOrder.totalQuantity = totalQuantity;
       existingOrder.paymentStatus = paymentStatus;
-      existingOrder.distance = formattedDistance;
+      existingOrder.distance = formattedDistance; // Include the distance in the order
 
       // Save the updated order to the database
       await existingOrder.save();
 
-      return res.json({
+      // Construct the response with updated order details
+      const response = {
+        message: 'Order Devlivery successfully',
         _id: existingOrder._id,
-        action: 'Order Updated',
-        message: 'Order has been updated successfully.',
-        order: existingOrder,
-      });
+        // Include other necessary fields in the response based on your schema
+        DropLocation: existingOrder.DropLocation,
+        PickUpLocation: existingOrder.PickUpLocation,
+        items: existingOrder.items,
+        totalAmount: existingOrder.totalAmount,
+        totalQuantity: existingOrder.totalQuantity,
+        paymentStatus: existingOrder.paymentStatus,
+        distance: existingOrder.distance,
+        // Include any other required fields from the order object
+      };
+
+      return res.json(response);
     } else {
       return res.status(400).json({ error: 'Invalid location data provided.' });
     }
   } catch (error) {
     console.error('Error updating order:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: `Internal server error: ${error.message}` });
   }
 };
 
 
+
+exports.getAllUpdateOrders = async (req, res) => {
+  try {
+    const orders = await OrderAccept.find(); 
+
+    // Construct the response with all order details
+    const response = orders.map(order => ({
+      _id: order._id,
+      DropLocation: order.DropLocation,
+      PickUpLocation: order.PickUpLocation,
+      items: order.items,
+      totalAmount: order.totalAmount,
+      totalQuantity: order.totalQuantity,
+      paymentStatus: order.paymentStatus,
+      distance: order.distance,
+      // Include any other required fields from the order object
+    }));
+
+    const message = 'Order Devlivery successfully';
+
+    return res.json({ message, orders: response });
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    return res.status(500).json({ error: `Internal server error: ${error.message}` });
+  }
+};
 
 
 //get method
