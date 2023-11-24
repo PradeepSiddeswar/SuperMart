@@ -107,136 +107,156 @@ exports.create = async (req, res) => {
 };
 
 // handle action Method
-
 exports.handleAction = async (req, res) => {
-  const orderID = generateOrderID();
+  const { _id, DropLocation, PickUpLocation, items, paymentResult, action } = req.body;
 
-  const { _id, action, DropLocation, PickUpLocation, items, paymentResult } = req.body;
+  if (action !== 'accept' && action !== 'reject' && action !== 'delivery') {
+    return res.status(400).json({ error: 'Invalid action specified.' });
+  }
 
   try {
-    let response;
+    // Fetch details based on the provided ID from the RegisterModel
+    const registerItem = await RegisterModel.findById(_id);
 
-    if (action === 'accept' || action === 'reject') {
-      let orderResponse = {};
-      // Your logic to create order
-      // Calculate the total amount and total quantity from the items
-      let totalAmount = 0;
-      let totalQuantity = 0;
-
-      for (const item of items) {
-        totalAmount += item.price * item.quantity;
-        totalQuantity += item.quantity;
-      }
-
-      const paymentStatus = paymentResult === 'success' ? 'Paid' : 'Failed';
-
-      // Calculate distance using the obtained coordinates
-      const orderLocation = DropLocation;
-      const currentLocation = PickUpLocation;
-
-      if (orderLocation && currentLocation) {
-        const distance = calculateDistance(
-          orderLocation.latitude,
-          orderLocation.longitude,
-          currentLocation.latitude,
-          currentLocation.longitude
-        );
-
-        const formattedDistance = distance === 0 ? '0 km' : `${distance.toFixed(2)} km`;
-
-        const order = new OrderAccept({
-          orderID,
-          DropLocation: orderLocation,
-          PickUpLocation: currentLocation,
-          timestamp: new Date(), // Assuming the timestamp needs to be the current time
-          items,
-          totalAmount,
-          totalQuantity, // Include total quantity in the order
-          paymentStatus,
-          distance: formattedDistance,
-        });
-
-        // Save the order to the database
-        await order.save();
-
-        // Emit the new location to all connected clients (if you're using socket.io)
-        io.emit('locationUpdate', { orderID, DropLocation, PickUpLocation, timestamp: new Date() });
-
-        // Create an order object for the response
-        orderResponse = {
-          orderID,
-          DropLocation: orderLocation,
-          PickUpLocation: currentLocation,
-          timestamp: new Date(),
-          items,
-          totalAmount,
-          totalQuantity,
-          paymentStatus,
-          distance: formattedDistance,
-        };
-      }
-
-      // Handle the action (accept or reject)
-      if (action === 'accept') {
-        // Fetch details based on the provided ID from the RegisterModel
-        const registerItem = await RegisterModel.findById(_id);
-
-        if (!registerItem) {
-          return res.status(404).json({ error: 'Item not found' });
-        }
-
-        // Construct the response containing _id, action, and name for "accept"
-        response = {
-          _id,
-          name: registerItem.name,
-          action: 'Order Accepted',
-          message: 'Order has been Accepted Successfully.',
-          order: orderResponse,
-        };
-      } else {
-        // Construct the response for "reject"
-        response = {
-          _id,
-          action: 'Order Rejected',
-          message: 'Order has been rejected.',
-          order: orderResponse,
-        };
-      }
-    } else {
-      return res.status(400).json({ error: 'Invalid action specified.' });
+    if (!registerItem) {
+      return res.status(404).json({ error: 'Item not found' });
     }
 
-    res.json(response);
+    const orderID = generateOrderID();
+    const timestamp = new Date();
+
+    // Calculate the total amount and total quantity from the items
+    let totalAmount = 0;
+    let totalQuantity = 0;
+
+    for (const item of items) {
+      totalAmount += item.price * item.quantity;
+      totalQuantity += item.quantity;
+    }
+
+    const paymentStatus = paymentResult === 'success' ? 'Paid' : 'Failed';
+
+    // Calculate distance using the obtained coordinates
+    const orderLocation = DropLocation;
+    const currentLocation = PickUpLocation;
+
+    if (orderLocation && currentLocation) {
+      const distance = calculateDistance(
+        orderLocation.latitude,
+        orderLocation.longitude,
+        currentLocation.latitude,
+        currentLocation.longitude
+      );
+
+      const formattedDistance = distance === 0 ? '0 km' : `${distance.toFixed(2)} km`;
+
+      // Create an order object
+      const order = new OrderAccept({
+        action,
+        orderID,
+        DropLocation: orderLocation,
+        PickUpLocation: currentLocation,
+        timestamp,
+        items,
+        totalAmount,
+        totalQuantity,
+        paymentStatus,
+        distance: formattedDistance,
+      });
+
+      order.save()
+        .then(() => {
+          // Emit the new location to all connected clients
+          io.emit('locationUpdate', { orderID, DropLocation, PickUpLocation, timestamp });
+
+          // Construct the response based on the action
+          let response = {};
+
+          if (action === 'accept') {
+            response = {
+              action: 'Order Accepted',
+              name: registerItem.name, // Include the name from registerItem
+              orderID,
+              distance: formattedDistance,
+              timestamp,
+              DropLocation: orderLocation,
+              PickUpLocation: currentLocation,
+              items,
+              totalAmount,
+              totalQuantity,
+              paymentStatus,
+            };
+          } else if (action === 'reject') {
+            response = {
+              action: 'Order Rejected',
+              name: registerItem.name, // Include the name from registerItem
+              orderID,
+              distance: formattedDistance,
+              timestamp,
+              DropLocation: orderLocation,
+              PickUpLocation: currentLocation,
+              items,
+              totalAmount,
+              totalQuantity,
+              paymentStatus,
+            };
+          } else if (action === 'delivery') {
+            response = {
+              action: 'Order Delivered',
+              name: registerItem.name, // Include the name from registerItem
+              orderID,
+              distance: formattedDistance,
+              timestamp,
+              DropLocation: orderLocation,
+              PickUpLocation: currentLocation,
+              items,
+              totalAmount,
+              totalQuantity,
+              paymentStatus,
+            };
+          }
+
+          res.status(201).json(response);
+        })
+        .catch((err) => {
+          console.error('Error:', err);
+          res.status(500).json({ error: 'An error occurred.' });
+        });
+    } else {
+      res.status(400).json({ error: 'Invalid location data' });
+    }
   } catch (error) {
     console.error('Error handling action and order:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
 
+// Get All 
 exports.getAllOrders = async (req, res) => {
   try {
-    const allOrders = await OrderAccept.find().populate('registerModel').lean();
+    const orders = await OrderAccept.find().populate('registerModel');
+    console.log('All Orders:', orders);
 
-    if (!allOrders || allOrders.length === 0) {
+    if (!orders || orders.length === 0) {
       return res.status(404).json({ error: 'No orders found' });
     }
 
-    const transformedOrders = [];
+    const formattedOrders = orders.map(order => {
+      let formattedAction = '';
 
-    for (const order of allOrders) {
-      console.log(`Searching for data in RegisterModel for order ID: ${order.registerModel}`);
-
-      let additionalInfo = null;
-      try {
-        additionalInfo = await RegisterModel.findById(order.registerModel); // Fetch additional info based on order ID
-      } catch (error) {
-        console.error('Error fetching additional info from RegisterModel:', error);
-      }
-
-      if (additionalInfo) {
-        console.log(`Found data in RegisterModel for order ID: ${order.registerModel}`);
-      } else {
-        console.log(`No data found in RegisterModel for order ID: ${order.registerModel}`);
+      switch (order.action) {
+        case 'accept':
+          formattedAction = 'Order Accepted';
+          break;
+        case 'reject':
+          formattedAction = 'Order Rejected';
+          break;
+        case 'delivery':
+          formattedAction = 'Order Delivered';
+          break;
+        default:
+          formattedAction = order.action;
+          break;
       }
 
       const distance = calculateDistance(
@@ -248,35 +268,34 @@ exports.getAllOrders = async (req, res) => {
 
       const formattedDistance = distance === 0 ? '0 km' : `${distance.toFixed(2)} km`;
 
-      const orderResponse = {
+      return {
+        action: formattedAction,
+        name: (order.registerModel && order.registerModel.name) ? order.registerModel.name : 'Name Unknown',
         orderID: order.orderID,
+        timestamp: order.timestamp,
         DropLocation: order.DropLocation,
         PickUpLocation: order.PickUpLocation,
-        timestamp: order.timestamp,
         items: order.items,
         totalAmount: order.totalAmount,
-        totalQuantity: order.totalQuantity,
         paymentStatus: order.paymentStatus,
         distance: formattedDistance,
       };
+    });
 
-      const transformedOrder = {
-        _id: order._id,
-        name: additionalInfo && additionalInfo.name ? additionalInfo.name : 'N/A',
-        action: additionalInfo && additionalInfo.action ? additionalInfo.action : 'N/A',
-        message: additionalInfo && additionalInfo.message ? additionalInfo.message : 'N/A',
-        order: orderResponse,
-      };
-      
-      transformedOrders.push(transformedOrder);
-    }
-
-    res.json(transformedOrders);
+    res.status(200).json({
+      message: 'All orders retrieved successfully',
+      data: formattedOrders,
+    });
   } catch (error) {
     console.error('Error fetching orders:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Error fetching orders', message: error.message });
   }
 };
+
+
+
+
+
 
 
 exports.updateOrder = async (req, res) => {
@@ -401,17 +420,23 @@ exports.getAll = async (req, res) => {
 };
  
 // delete method
-exports.delete = (req, res) => {
-  const id = req.params.id
-  RegisterModel.findByIdAndDelete(id)
-      .then(data => {
-          if (!data) {
-              res.status(400).send(`category not found with ${id}`)
-          } else {
-              res.send("category deleted successfully")
-          }
-      })
-      .catch(error => {
-          res.status(500).send(error)
-      })
-}
+exports.delete = async (req, res) => {
+  const { orderID } = req.params; // Assuming orderID is in the request parameters
+
+  try {
+    // Find the order by orderID and remove it
+    const deletedOrder = await OrderAccept.findOneAndDelete({ orderID });
+
+    if (!deletedOrder) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    res.status(200).json({
+      message: 'Order deleted successfully',
+      deletedOrder,
+    });
+  } catch (error) {
+    console.error('Error deleting order:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};

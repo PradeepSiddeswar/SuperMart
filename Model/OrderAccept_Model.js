@@ -1,7 +1,11 @@
 const mongoose = require('mongoose');
-
+const Schema = mongoose.Schema;
 // Define a schema for your location data
 const ordersAcceptSchema = new mongoose.Schema({
+  action: {
+    type: String,
+    required: true,
+  },
   orderID: String,
  DropLocation : {
   latitude : Number,
@@ -32,8 +36,8 @@ const ordersAcceptSchema = new mongoose.Schema({
     required: true,
   },
   registerModel: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'RegisterModel', // Reference to the RegisterModel
+    type: Schema.Types.ObjectId,
+    ref: 'RegisterModel' // Reference to the RegisterModel
   },
 });
 

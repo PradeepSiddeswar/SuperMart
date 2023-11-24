@@ -2,6 +2,10 @@ const mongoose = require('mongoose');
 
 // Define a schema for your location data
 const ordersSchema = new mongoose.Schema({
+  action: {
+    type: String,
+    required: true,
+  },
   orderID: String,
  DropLocation : {
   latitude : Number,
@@ -31,6 +35,7 @@ const ordersSchema = new mongoose.Schema({
     enum: ['Paid', 'Failed'], // Payment status can be 'Paid' or 'Failed'
     required: true,
   },
+
 });
 
 // Create a model based on the schema

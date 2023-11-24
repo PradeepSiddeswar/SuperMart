@@ -29,19 +29,23 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   return distance;
 }
 
-// Create Order API
 exports.createOrder = (req, res) => {
+  const { DropLocation, PickUpLocation, items, paymentResult, action } = req.body;
+
+  if (action !== 'accept' && action !== 'reject' && action !== 'delivery') {
+    return res.status(400).json({ error: 'Invalid action specified.' });
+  }
+
   const orderID = generateOrderID();
-  const { DropLocation, PickUpLocation, items, paymentResult } = req.body;
   const timestamp = new Date();
 
   // Calculate the total amount and total quantity from the items
   let totalAmount = 0;
-  let totalQuantity = 0; // Initialize total quantity to 0
+  let totalQuantity = 0;
 
   for (const item of items) {
     totalAmount += item.price * item.quantity;
-    totalQuantity += item.quantity; // Calculate the total quantity
+    totalQuantity += item.quantity;
   }
 
   const paymentStatus = paymentResult === 'success' ? 'Paid' : 'Failed';
@@ -62,13 +66,14 @@ exports.createOrder = (req, res) => {
 
     // Create an order object
     const order = new Orders({
+      action,
       orderID,
       DropLocation: orderLocation,
       PickUpLocation: currentLocation,
       timestamp,
       items,
       totalAmount,
-      totalQuantity, // Include total quantity in the order
+      totalQuantity,
       paymentStatus,
       distance: formattedDistance,
     });
@@ -79,17 +84,48 @@ exports.createOrder = (req, res) => {
         // Emit the new location to all connected clients
         io.emit('locationUpdate', { orderID, DropLocation, PickUpLocation, timestamp });
 
-        const response = {
-          orderID,
-          distance: formattedDistance,
-          timestamp,
-          DropLocation: orderLocation,
-          PickUpLocation: currentLocation,
-          items,
-          totalAmount,
-          totalQuantity, // Include total quantity in the response
-          paymentStatus,
-        };
+        let response = {};
+
+        if (action === 'accept') {
+          response = {
+            action: 'Order Accepted',
+            orderID,
+            distance: formattedDistance,
+            timestamp,
+            DropLocation: orderLocation,
+            PickUpLocation: currentLocation,
+            items,
+            totalAmount,
+            totalQuantity,
+            paymentStatus,
+          };
+        } else if (action === 'reject') {
+          response = {
+            action: 'Order Rejected',
+            orderID,
+            distance: formattedDistance,
+            timestamp,
+            DropLocation: orderLocation,
+            PickUpLocation: currentLocation,
+            items,
+            totalAmount,
+            totalQuantity,
+            paymentStatus,
+          };
+        } else if (action === 'delivery') {
+          response = {
+            action: 'Order Delivered',
+            orderID,
+            distance: formattedDistance,
+            timestamp,
+            DropLocation: orderLocation,
+            PickUpLocation: currentLocation,
+            items,
+            totalAmount,
+            totalQuantity,
+            paymentStatus,
+          };
+        }
 
         res.status(201).json(response);
       })
@@ -102,69 +138,73 @@ exports.createOrder = (req, res) => {
   }
 };
 
+
+
 // Get All Orders API
 exports.getAll = async (req, res) => {
   try {
-    const records = await Orders.find();
+    const orders = await Orders.find(); // Retrieve all orders from the database
 
-    const currentLocation = { latitude: 12.9352, longitude: 77.6245 };
+    // Format the response including the 'action' field
+    const formattedOrders = orders.map(order => {
+      let formattedAction = '';
 
-    // Calculate and add the distance for each record
-    const recordsWithDistance = records.map((record) => {
-      const orderLocation = record.DropLocation;
-
-      if (
-        orderLocation &&
-        orderLocation.latitude &&
-        orderLocation.longitude &&
-        currentLocation &&
-        currentLocation.latitude &&
-        currentLocation.longitude
-      ) {
-        // Calculate the distance using the same function and inputs
-        const distance = calculateDistance(
-          orderLocation.latitude,
-          orderLocation.longitude,
-          currentLocation.latitude,
-          currentLocation.longitude
-        );
-        const formattedDistance =
-          distance === 0 ? '0 km' : `${distance.toFixed(2)} km`;
-
-        // Include the distance and PickUpLocation in the record
-        return {
-          ...record._doc, // If using Mongoose, use _doc to access the document properties
-          distance: formattedDistance,
-          PickUpLocation: record.PickUpLocation, // Include PickUpLocation
-        };
-      } else {
-        // Handle invalid location data as needed
-        return {
-          ...record._doc,
-        };
+      // Format action based on lowercase values
+      switch (order.action) {
+        case 'accept':
+          formattedAction = 'Order Accepted';
+          break;
+        case 'reject':
+          formattedAction = 'Order Rejected';
+          break;
+        case 'delivery':
+          formattedAction = 'Order Delivered';
+          break;
+        default:
+          formattedAction = order.action;
+          break;
       }
+
+      // Calculate distance using the obtained coordinates
+      const distance = calculateDistance(
+        order.DropLocation.latitude,
+        order.DropLocation.longitude,
+        order.PickUpLocation.latitude,
+        order.PickUpLocation.longitude
+      );
+
+      const formattedDistance = distance === 0 ? '0 km' : `${distance.toFixed(2)} km`;
+
+      return {
+        action: formattedAction, // Include the 'action' field
+        orderID: order.orderID,
+        timestamp: order.timestamp,
+        DropLocation: order.DropLocation,
+        PickUpLocation: order.PickUpLocation,
+        items: order.items,
+        totalAmount: order.totalAmount,
+        paymentStatus: order.paymentStatus,
+        distance: formattedDistance,
+      };
     });
 
-    const responseData = {
+    res.status(200).json({
       message: 'All orders retrieved successfully',
-      data: recordsWithDistance,
-    };
-
-    res.status(200).json(responseData);
+      data: formattedOrders,
+    });
   } catch (error) {
-    console.error('Error fetching records:', error);
-    res.status(500).json({ error: 'Error fetching records', message: error.message });
+    console.error('Error fetching orders:', error);
+    res.status(500).json({ error: 'Error fetching orders', message: error.message });
   }
 };
 
-  
-  
+
+
+
+
 
   
-  
-  //get method
- 
-  
+
 // delete method
 exports.delete = (req, res) => {
   const id = req.params.id
