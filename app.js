@@ -58,7 +58,7 @@ const BeautyProductsRoute = require('./Routes/BeautyProduct_Router')
 const CookingVesselsRoute = require('./Routes/CookingVessels_Router')
 const PersonalCareRoute = require('./Routes/PersonalCare_Router')
 const FruitRoute = require('./Routes/FruitVeggies_Router')
-
+const CategoryDetailsRoute = require('./Routes/CategoryDetails_Router')
 
 
 
@@ -159,3 +159,4 @@ app.use('/BeautyProducts', BeautyProductsRoute)
 app.use('/CookingVessels', CookingVesselsRoute)
 app.use('/PersonalCare', PersonalCareRoute)
 app.use('/FruitAndVeggies',FruitRoute)
+app.use('/Category-Details', CategoryDetailsRoute)

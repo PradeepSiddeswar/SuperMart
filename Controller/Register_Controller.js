@@ -419,6 +419,7 @@ exports.getAll = async (req, res) => {
   }
 };
  
+
 // delete method
 exports.delete = async (req, res) => {
   const { orderID } = req.params; // Assuming orderID is in the request parameters
