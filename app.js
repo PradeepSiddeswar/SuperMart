@@ -59,7 +59,7 @@ const CookingVesselsRoute = require('./Routes/CookingVessels_Router')
 const PersonalCareRoute = require('./Routes/PersonalCare_Router')
 const FruitRoute = require('./Routes/FruitVeggies_Router')
 const CategoryDetailsRoute = require('./Routes/CategoryDetails_Router')
-
+const TopListRoute = require('./Routes/TopList_Router')
 
 
 dotenv.config({ path: '.env'})
@@ -160,3 +160,4 @@ app.use('/CookingVessels', CookingVesselsRoute)
 app.use('/PersonalCare', PersonalCareRoute)
 app.use('/FruitAndVeggies',FruitRoute)
 app.use('/Category-Details', CategoryDetailsRoute)
+app.use('/Top-List', TopListRoute)
