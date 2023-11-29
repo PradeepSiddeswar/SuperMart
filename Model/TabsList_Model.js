@@ -11,11 +11,11 @@ const ProductSchema = new mongoose.Schema({
   image_url: String
 });
 
-const TopListSchema = new mongoose.Schema({
+const DownListSchema = new mongoose.Schema({
     content: {
-        Womens: [ProductSchema],
-        Men: [ProductSchema],
-        Kids: [ProductSchema]
+        HairCare: [ProductSchema],
+        SkinCare: [ProductSchema],
+        HygienicCare: [ProductSchema]
         // Add other categories as needed
       },
   name: {
@@ -35,5 +35,4 @@ const TopListSchema = new mongoose.Schema({
  
 });
 
-module.exports = mongoose.model('TopList', TopListSchema);
-
+module.exports = mongoose.model('DownList', DownListSchema);

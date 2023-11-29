@@ -13,7 +13,6 @@ const socketIo = require('socket.io');
 
 const io = socketIo(server);
 
-// Your other app setup code
 
 // Socket.io connections
 io.on('connection', (socket) => {
@@ -60,7 +59,7 @@ const PersonalCareRoute = require('./Routes/PersonalCare_Router')
 const FruitRoute = require('./Routes/FruitVeggies_Router')
 const CategoryDetailsRoute = require('./Routes/CategoryDetails_Router')
 const TopListRoute = require('./Routes/TopList_Router')
-
+const TabsListRoute = require('./Routes/TabsList_Router')
 
 dotenv.config({ path: '.env'})
 const PORT = process.env.PORT || 5000
@@ -161,3 +160,4 @@ app.use('/PersonalCare', PersonalCareRoute)
 app.use('/FruitAndVeggies',FruitRoute)
 app.use('/Category-Details', CategoryDetailsRoute)
 app.use('/Tabs-List', TopListRoute)
+app.use('/TabsList1', TabsListRoute)

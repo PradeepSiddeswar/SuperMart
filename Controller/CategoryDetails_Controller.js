@@ -31,6 +31,7 @@ exports.create = async (req, res) => {
       res.status(500).json({ error: 'Error fetching records', message: error.message });
     }
   };
+  
 // delete method
 exports.delete = (req, res) => {
     const id = req.params.id

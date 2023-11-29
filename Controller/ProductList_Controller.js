@@ -18,7 +18,6 @@ exports.create = async (req, res) => {
 
         const totalQuantity = Number(productData.quantity);
 
-        // Add the generated UUID to the product data
         productData.uuid = newUuid;
 
         const categories_id = productData.categoryId; 
@@ -52,7 +51,7 @@ exports.getAll = async (req, res) => {
 
         if (records.length > 0) {
             // Set categories_id based on the category of the first product
-            categories_id = records[0].categories_id; // Replace 'category_id' with the actual property name
+            categories_id = records[0].categories_id; 
         }
 
         const responseData = records.map((record) => {
@@ -133,7 +132,7 @@ exports.getItemById = async (req, res) => {
             },
             totalPrice,
             totalQuantity: record.quantity,
-            newUuid, // Include the new UUID in the response
+            newUuid,
         };
 
         res.status(200).json(responseData);
@@ -150,7 +149,6 @@ exports.delete = (req, res) => {
     const newUuid = req.params.newUuid; 
 
     try {
-        // Find and delete the item by its newUuid
         ProductList.findOneAndDelete({ newUuid })
             .then(data => {
                 if (!data) {
@@ -173,7 +171,6 @@ exports.getAllItems = async (req, res) => {
         // Fetch all items from your database
         const allItems = await ProductList.find();
 
-        // You can customize the data you want to send in the response
         const responseData = allItems.map((record) => {
             return {
                 product: {
@@ -199,8 +196,7 @@ exports.getAllItems = async (req, res) => {
 
 exports.getAllCategories = async (req, res) => {
     try {
-        // Get the specific categories_id from the request URL parameter
-        const specificCategoryId = req.params.categories_id; // Use req.params instead of req.query
+        const specificCategoryId = req.params.categories_id; 
 
         if (!specificCategoryId) {
             return res.status(400).json({ error: 'Missing categories_id parameter' });

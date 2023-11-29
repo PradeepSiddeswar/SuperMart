@@ -1,12 +1,12 @@
 const  RegisterModel= require('../Model/Register_Model');
 const OrderAccept = require('../Model/OrderAccept_Model')
 const socketIo = require('socket.io');
-const http = require('http'); // Require http module
+const http = require('http'); 
 const express = require('express');
-const mongoose = require('mongoose'); // Make sure you import mongoose
+const mongoose = require('mongoose'); 
 
 const app = express();
-const server = http.createServer(app); // Initialize the server
+const server = http.createServer(app); 
 
 const io = socketIo(server); 
 
@@ -16,14 +16,14 @@ function generateOrderID() {
 
   // Function to calculate distance between two sets of coordinates
 function calculateDistance(lat1, lon1, lat2, lon2) {
-  const earthRadius = 6371; // Radius of the Earth in kilometers
+  const earthRadius = 6371; 
   const dLat = (lat2 - lat1) * (Math.PI / 180);
   const dLon = (lon2 - lon1) * (Math.PI / 180);
 
   const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) ** 2;
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-  const distance = earthRadius * c; // The distance in kilometers
+  const distance = earthRadius * c; 
   return distance;
 }
 
@@ -32,7 +32,7 @@ exports.create = async (req, res) => {
     let {
       phone,
       name,
-      location, // Use 'location' field to specify the address or place name
+      location, 
       vehicleType,
       vehicleName,
       vehicleNumber,
@@ -47,7 +47,6 @@ exports.create = async (req, res) => {
       return res.status(400).json({ error: 'panImage, aadharImage, and drivingLicenseImage are required fields' });
     }
 
-    // Handle file uploads (as in your provided code)
     if (req.files) {
       documentImage = req.files['documentImage'][0]
         ? req.protocol + '://' + req.get('host') + '/uploads/' + req.files['documentImage'][0].filename
@@ -80,7 +79,6 @@ exports.create = async (req, res) => {
     // Save the category to your database
     await register.save();
 
-    // Construct the response data
     const responseData = {
       message: 'Documents uploaded successfully',
       data: {
@@ -98,7 +96,6 @@ exports.create = async (req, res) => {
       },
     };
 
-    // Respond with success status and the response data
     res.status(201).json(responseData);
   } catch (error) {
     console.error('Error creating category:', error);
@@ -115,7 +112,6 @@ exports.handleAction = async (req, res) => {
   }
 
   try {
-    // Fetch details based on the provided ID from the RegisterModel
     const registerItem = await RegisterModel.findById(_id);
 
     if (!registerItem) {
@@ -125,7 +121,6 @@ exports.handleAction = async (req, res) => {
     const orderID = generateOrderID();
     const timestamp = new Date();
 
-    // Calculate the total amount and total quantity from the items
     let totalAmount = 0;
     let totalQuantity = 0;
 
