@@ -227,8 +227,8 @@ exports.getSubcategoryItems = async (req, res) => {
   }
 };
 
-// Get method with ProductDetails
 
+// Get method with ProductDetails
 exports.getProductsDetails = async (req, res) => {
   try {
     const products = await ProductDetails.find({ productId: req.params.productId });
@@ -355,7 +355,7 @@ exports.getAllItemsInCart = async (req, res) => {
 
 exports.removeFromCart = async (req, res) => {
   try {
-    const { itemId } = req.params; 
+    const { itemId } = req.params;
 
     // Find the index of the item with the given ID in the cart array
     const indexToRemove = cart.findIndex((productId) => productId === itemId);
